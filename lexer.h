@@ -42,47 +42,7 @@ typedef struct LexInstance	{
 
 } LexInstance;
 
-// CSTNode for NonTerminals.
-typedef struct GrammarUnit	{
 
-	int num_tokens; // from lexer
-	char** tokens;
-
-} GrammarUnit;
-
-typedef struct CSTNode	{
-
-	char* nodeName; // OPTIONAL ID-STRING, NONTERMINAL DESIGNATION.
-
-	void* ancestor; 	// typeof( struct CSTNode* ), back-reference
-
-	char* termStr;
-	signed isTerminal; 
-	// if this is FAlSE, 0, then the below struct members must be populated, as the
-	// descendents will be nonterminals.
-
-	void** descendents;
-	signed numDescendents;
-
-}	CSTNode;
-
-
-
-unsigned strcmp__( char* str1, char* str2 )	{
-
-	while( (*str1++ != 0) || (*str2++ != 0) )
-		if( *str2 == *str1 )
-			continue;
-		else
-			return 0;
-
-	if( *str2 == *str1 == 0 )
-		return +1;
-	
-	return 0;
-}
-
-char** split( char* line, char delim );
 
 
 int extend( void* _ );

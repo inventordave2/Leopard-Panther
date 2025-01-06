@@ -17,6 +17,7 @@
 #endif
 
 #include "lexertest.h"
+
 int main( int argc, char** argv )	{
 
 	volatile struct GC* gc = initGC( 100 );

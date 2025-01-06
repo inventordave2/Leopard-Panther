@@ -1,17 +1,17 @@
 // DAVELIB_LEXER_C
 
-#include "../../davelib/io.h"
-#include "../../stringy/stringy.h"
-#include "../../davelib/lib.h"
-#include "../../colour/colour.h"
+#include "../davelib/io.h"
+#include "../stringy/stringy.h"
+#include "../davelib/lib.h"
+#include "../colour/colour.h"
 
 // LEXER & PARSER Includes. 
 #include "lexer.h"
 #include "parser.h"
 
 // W STOOP'S REGEX LIBRARY
-#include "../../wernee/regex_w/wregex.h"
-#include "../../wernee/regex_w/wrx_prnt.h"
+#include "../wernee/regex_w/wregex.h"
+#include "../wernee/regex_w/wrx_prnt.h"
 
 // LEXER:: Match substring from start to a regex-defined TOKEN_TYPE.
 char* patternMatch( char* str, struct LexInstance* lexer )	{

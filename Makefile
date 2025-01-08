@@ -20,14 +20,11 @@ test: lexer parser lexertest aplib_pkg
 	$(CC) $(DEBUG) $(OPTIM) aplibpkg.a -o test.exe
 
 aplib_pkg:
-	make ../algae/ algae
-	make ../ colour
-	make ../ stringy
-	make ../ io
-	make ../ lib
-	make ../ gcollect/ gcd
+	make -C ./colour colourd
+	make -C ./stringy stringyd
 
-	ar -r ../aplib.o ../stringy.o ../colour.o ../lib.o ../io.o ../gcollect/gcd.o lexer.o parser.o lexertest.o -o aplibpkg.a
+
+	ar -r ./stringy/stringyd.o ./colour/colourd.o lexer.o parser.o lexertest.o -o aplibpkg.a
 
 clean:
 	rm -f *.o
@@ -35,10 +32,6 @@ clean:
 	rm -f test.exe
 	
 clean-all: clean
-	make ../algae/		clean
-	make ../colour		clean
-	make ../stringy		clean
-	make ../io			clean
-	make ../lib			clean
-	make ../gcollect/ 	clean 
+	make -C ./colour		clean
+	make -C ./stringy		clean
 

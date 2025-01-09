@@ -1,4 +1,6 @@
 .vs
+.ccls-cache
+
 
 # Prerequisites
 *.d

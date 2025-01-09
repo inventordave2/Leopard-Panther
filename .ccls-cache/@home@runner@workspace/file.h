@@ -19,24 +19,10 @@ typedef struct FileContext	{
 
 
 struct FileContext readFile( char* fn );
-
-
-
-unsigned strcmp__( char* str1, char* str2 )	{
-
-	while( (*str1++ != 0) || (*str2++ != 0) )
-		if( *str2 == *str1 )
-			continue;
-		else
-			return 0;
-
-	if( *str2 == *str1 == 0 )
-		return +1;
-	
-	return 0;
-}
+struct FileContents read_f_split( char* fn, char* delim );
 
 char** split( char* line, char delim );
+char* getline_file( char* fn, int lineNum );
 
 #endif
 

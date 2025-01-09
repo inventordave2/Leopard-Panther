@@ -9,6 +9,23 @@
 #include "../colour/colour.h"
 #include "stringy.h"
 
+
+unsigned strcmp__( char* str1, char* str2 )	{
+
+	while( (*str1++ != 0) || (*str2++ != 0) )
+		if( *str2 == *str1 )
+			continue;
+		else
+			return 0;
+
+	if( *str2 == *str1 == 0 )
+		return +1;
+
+	return 0;
+}
+
+
+
 int cmp( char* a, char* b ) { // returns true (1) if the 2 c-strings match, as it should...
 
 	return ( strcmp(a, b) == 0 );

@@ -63,8 +63,8 @@ manual.html: doc.awk wregex.h
 .PHONY : clean wipe
 
 clean: wipe
-	del test wgrep *.exe
-	del manual.html
+	rm -f test wgrep *.exe
+	rm -f manual.html
 
 wipe:
-	del *.o
+	rm -f *.o

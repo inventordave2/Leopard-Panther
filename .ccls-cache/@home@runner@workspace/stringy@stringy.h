@@ -73,6 +73,10 @@ extern char* safecat(char* s, char* rhs);
 extern char* int2str(int v);
 extern int str2int(char*);
 
+
+unsigned strcmpi__( char* str1, char* str2 );
+
+
 // SUGAR
 extern int streq( char*,char* ); // returns true (1) if the 2 c-strings match, as it should...
 int seq(char *a, char *b); // actually returns 0 for non-match, 1 for match.

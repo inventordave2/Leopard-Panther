@@ -90,66 +90,8 @@ char* checkType( char* token, LexInstance* Lexer )	{
 	return type;
 }
 
-struct FileContents read_f_split( char* fn, char* delim )	{
-
-	FILE* f;
-	f = fopen( fn, "r" );
-	fseek( f, 0, SEEK_END );
-	int flen = ftell( f );
-	fseek( f, 0, SEEK_SET );
-	
-	struct FileContents fc;
-	fc.lineCount = 0;
-	fc.lines = (char**) malloc( sizeof(char*) * (flen+1) );
-	// char** fc->lines
-	// int fc->lineCount
-
-	char* line = (char*) malloc( 1024 );
-	char c;
-	int x, y;
-	x = 0, y = 0;
-	c = fgetc( f );
-	
-	while( c != EOF )	{
-
-		if( c==delim[0] )	{
-		
-			line[x] = '\0';
-			x = 0;
-			fc.lines[y] = getstring( line );
-			y++;
-		}
-		else
-			line[x++] = c;
-
-		line[ x ] = '\0';
-
-		c = fgetc( f );
-	}
-
-	fclose( f );
-
-	return fc;
-}
 
 
-
-
-
-char* getline_file( char* fn, int lineNum )	{
-
-	// struct FileContents read_f_split( char* fn, char* delim );
-	static struct FileContents fc;
-	static char* fname = NULL;
-
-	if( strcmp( fn, fname ) != 0 )	{
-
-		fname = getstring( fn );
-		fc = read_f_split( fname, "\n" );
-	}
-	
-	return fc.lines[ lineNum ];
-}
 
 char** getStringList( char* str, char* pattern )	{
 
@@ -561,7 +503,7 @@ void PushParserStack( char* prRule, char*** collection, int amount
 	for( x=0; x<amount; x++ )	{
 
 		char* tt = collection[x][0];
-		subNode = createNode( tt );
+		subNode = initNode( tt );
 
 		if( checkType( tt, parser->lexer )=="T" )	{
 

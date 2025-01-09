@@ -20,14 +20,14 @@ parser: parser.c parser.h
 	$(CC) $(DEBUG) $(OPTIM) -c parser.c -o parser.o
 
 test: lexer parser lexertest aplibpkg
-	$(CC) $(DEBUG) $(OPTIM)  aplibpkg.a  -o test.exe
+	$(CC) $(DEBUG) $(OPTIM) lexer.o parser.o lexertest.o ./stringy/stringyd.o ./colour/colourd.o ./regex_w/regexd.o  -o test.exe
+
 
 aplibpkg: lexer parser lexertest
 
 	make -C ./colour colourd
 	make -C ./stringy stringyd
-
-	ar -rcs aplibpkg.a ./stringy/stringyd.o ./colour/colourd.o lexer.o parser.o lexertest.o
+	make -C ./regex_w libd 
 
 clean:
 	rm -f *.o

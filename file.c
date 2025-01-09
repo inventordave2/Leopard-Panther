@@ -1,5 +1,12 @@
 // FILE_C
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include "./stringy/stringy.h"
+#include "file.h"
+
+
 char** split( char* line, char delim )	{
 
 	char** _;
@@ -94,6 +101,7 @@ struct FileContext readFile( char* fn )	{
 
 	struct FileContext fileContext;
 
+	char c;
 	FILE* f;
 	f = fopen( fn, "r" );
 	fseek( f, 0, SEEK_END );

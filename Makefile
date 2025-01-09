@@ -19,11 +19,11 @@ lexer: lexer.c lexer.h
 parser: parser.c parser.h
 	$(CC) $(DEBUG) $(OPTIM) -c parser.c -o parser.o
 
-test: lexer parser lexertest aplibpkg
-	$(CC) $(DEBUG) $(OPTIM) lexer.o parser.o lexertest.o ./stringy/stringyd.o ./colour/colourd.o ./regex_w/regexd.o  -o test.exe
+test: filemethods lexandparsepkg
+	$(CC) $(DEBUG) $(OPTIM) filemethods.o lexer.o parser.o lexertest.o ./stringy/stringyd.o ./colour/colourd.o ./regex_w/regexd.o  -o test.exe
 
 
-aplibpkg: lexer parser lexertest
+lexandparsepkg: lexer parser lexertest filemethods
 
 	make -C ./colour colourd
 	make -C ./stringy stringyd

@@ -18,11 +18,11 @@ typedef struct FileContext	{
 } FileContext;
 
 
-struct FileContext readFile( char* fn );
-struct FileContents read_f_split( char* fn, char* delim );
+extern struct FileContext readFile( char* fn );
+extern struct FileContents read_f_split( char* fn, char* delim );
 
-char** split( char* line, char delim );
-char* getline_file( char* fn, int lineNum );
+extern char** split( char* line, char delim );
+extern char* getline_file( char* fn, int lineNum );
 
 #endif
 

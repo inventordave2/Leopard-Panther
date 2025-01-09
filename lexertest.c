@@ -37,18 +37,25 @@ int main( int argc, char** argv )	{
 	int success = lex( lexer );
 
 	if( !success )	{
-	report( "Lexer is reporting failure to lex file %s.\n", sc );
-	
-	int x;
-	for( x=0; x<lexer->tokensCount; x++ )	{
-
-		if( lexer->tokens[x][0]==NULL )
-			break;
 		
-		report( "%sToken Type: %s%s\n%sToken Literal: %s%s%s\n", FG_BRIGHT_YELLOW, FG_BRIGHT_GREEN, FG_BRIGHT_YELLOW, lexer->tokens[x][0], \
-				FG_BRIGHT_GREEN, lexer->tokens[x][1], NORMAL );
+		report( "Lexer is reporting failure to lex file %s.\n", sc );
+		
+		int x;
+		for( x=0; x<lexer->tokensCount; x++ )	{
+	
+			if( lexer->tokens[x][0]==NULL )
+				break;
+			
+			report( "%sToken Type: %s%s\n%sToken Literal: %s%s%s\n", FG_BRIGHT_YELLOW, FG_BRIGHT_GREEN, FG_BRIGHT_YELLOW, lexer->tokens[x][0], \
+					FG_BRIGHT_GREEN, lexer->tokens[x][1], NORMAL );
+		}
 	}
 
+	else	{
+
+		report( "%sLexer completed lexing of file %s.%s\n", FG_BRIGHT_YELLOW, sc, NORMAL );
+
+	}
 	return 0;
 }
 

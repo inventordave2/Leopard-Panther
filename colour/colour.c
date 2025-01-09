@@ -16,8 +16,6 @@
 #include <stdio.h>
 #include <string.h>
 
-// DAVELIB INC'S
-#include "../davelib/lib.h"
 #include "../stringy/stringy.h"
 #include "colour.h"
 
@@ -103,19 +101,19 @@ char* setVal( char* _, short v )	{
 	return str;
 }
 
-char* ANSIVT( char* str, char** cc, LARGE* offsets )	{
+char* ANSIVT( char* str, char** cc, long long int* offsets )	{
 
-	unsigned LARGE str_width = strlen(str);
-	unsigned LARGE width = str_width + (strlen(*cc)*VTCODEWIDTH);
+	unsigned long long int str_width = strlen(str);
+	unsigned long long int width = str_width + (strlen(*cc)*VTCODEWIDTH);
 	char* _ = malloc( width+1 );
 	char* bucket = malloc( width+1 );
 	char* vtcodestr;
 
-	LARGE q=0;
-	LARGE t=0;
+	unsigned long long int q=0;
+	unsigned long long int t=0;
 	while( t<str_width ){
 
-		LARGE p;
+		long long int p;
 		for( p=0; p< (*offsets); p++ ) // offsets are relative.
 			bucket[p] = str[t++];
 
@@ -133,8 +131,8 @@ char* ANSIVT( char* str, char** cc, LARGE* offsets )	{
 
 		if( *cc == '\0' )	{
 
-			LARGE y = strlen(_);
-			for( LARGE x=t;x<str_width; x++ )
+			unsigned long long int y = strlen(_);
+			for( unsigned long long int x=t;x<str_width; x++ )
 				_[y++]=str[x];
 
 			_[y] = '\0';			

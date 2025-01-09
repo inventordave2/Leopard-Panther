@@ -7,6 +7,9 @@ OPTIM=-O0
 
 .PHONY: clean clean-all
 
+filemethods: file.c file.h
+	$(CC) $(DEBUG) $(OPTIM) -c file.c -o filemethods.o
+
 lexertest: lexertest.c lexertest.h
 	$(CC) $(DEBUG) $(OPTIM) -c lexertest.c -o lexertest.o
 
@@ -14,17 +17,17 @@ lexer: lexer.c lexer.h
 	$(CC) $(DEBUG) $(OPTIM) -c lexer.c -o lexer.o
 
 parser: parser.c parser.h
-	$(CC) $(DEBUG) $(OPTIM) -c -o parser.o
+	$(CC) $(DEBUG) $(OPTIM) -c parser.c -o parser.o
 
-test: lexer parser lexertest aplib_pkg
-	$(CC) $(DEBUG) $(OPTIM) aplibpkg.a -o test.exe
+test: lexer parser lexertest aplibpkg
+	$(CC) $(DEBUG) $(OPTIM)  aplibpkg.a  -o test.exe
 
-aplib_pkg:
+aplibpkg: lexer parser lexertest
+
 	make -C ./colour colourd
 	make -C ./stringy stringyd
 
-
-	ar -r ./stringy/stringyd.o ./colour/colourd.o lexer.o parser.o lexertest.o -o aplibpkg.a
+	ar -rcs aplibpkg.a ./stringy/stringyd.o ./colour/colourd.o lexer.o parser.o lexertest.o
 
 clean:
 	rm -f *.o
@@ -32,6 +35,6 @@ clean:
 	rm -f test.exe
 	
 clean-all: clean
-	make -C ./colour		clean
-	make -C ./stringy		clean
+	make -C ./colour/ clean
+	make -C ./stringy/ clean
 

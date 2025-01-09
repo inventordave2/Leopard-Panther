@@ -204,8 +204,13 @@ else
 	
 		e = wrx_exec(r, str, &subm, &r->n_subm);
 
-		if( e > 0 )
-			stringList[x] = subm[1];
+		if( e > 0 )	{
+
+			char* _ = (char*)malloc( subm[1].end - subm[1].beg + 1 );
+			strncpy( _, subm[1].beg, subm[1].end - subm[1].beg );
+			_[ subm[1].end - subm[1].beg ] = '\0';
+			stringList[x] = _;
+		}
 		else if(e < 0)
 			fprintf(stderr, "Error: %s\n", wrx_error(e));
 		
@@ -509,7 +514,7 @@ char** split( char* line, char delim )	{
 		}
 
 		if( line[i] == '"' &&escaped==0 )
-			in_quotes==0 ? in_quotes=1 : in_quotes=0;
+			(in_quotes==0) ? (in_quotes=1) : (in_quotes=0);
 		
 		if( line[i] == '\'' && escaped==0 && in_singlequotes==1 )
 			in_singlequotes=0;
@@ -558,7 +563,7 @@ void PushParserStack( char* prRule, char*** collection, int amount
 		char* tt = collection[x][0];
 		subNode = createNode( tt );
 
-		if( checkType( tt )=="T" )	{
+		if( checkType( tt, parser->lexer )=="T" )	{
 
 			#ifndef TOKEN_LITERAL
 			#define TOKEN_LITERAL 1
@@ -586,73 +591,7 @@ void PushParserStack( char* prRule, char*** collection, int amount
 	return;
 }
 
-char** getNextProductionRuleSegment( struct LexInstance* lexer )	{
 
-	static unsigned x = 0;
-	static unsigned y = 1;
-	static char* prRule = NULL;
-	
-	char** prSegment;
-
-	if( lexer==NULL )	{
-		// reset statics.
-		x = 0, y = 1;
-
-		if( prRule != NULL )
-			free( prRule );
-		
-		prRule = getstring( "" );
-		return NULL;
-	}
-
-	if( lexer==(void*)1 )	{
-
-		// return prRule;		
-		return &prRule;
-	}
-	
-	
-
-	if( !!strcmp( prRule,lexer->productionRules[x][0][0] ) )
-		prRule = lexer->productionRules[x][0][0];
-
-	checkAgain:
-	
-	// char**** productionRules [n] [segment] [each NT/T type]
-	
-	
-	prSegment = lexer->productionRules[x][y++];
-	
-	if( prSegment == NULL )	{
-	// no more production rules to provide a segment from.
-
-		x = 0;
-		y = 1;
-
-		if( prRule != NULL )	{
-			
-			free( prRule );
-			prRule = NULL;
-		}
-		
-		return NULL;
-	}
-	
-	if( prSegment[0] == NULL )	{
-
-		if( prRule != NULL )
-			free( prRule );
-
-		x++;
-		y = 1;
-		prRule = lexer->productionRules[x][0][0];
-		// Alt. syntax: prRule = *lexer->productionRules[x][0];
-		
-		goto checkAgain;
-	}
-
-	return prSegment;
-}
 
 
 int extend( void* self )	{

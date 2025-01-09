@@ -4,8 +4,6 @@
 
 // GLOBALS
 
-
-
 typedef struct LexInstance	{
 
 	int TOK_TYPE;
@@ -36,8 +34,6 @@ typedef struct LexInstance	{
 
 
 } LexInstance;
-
-
 
 
 int extend( void* _ );

@@ -10,7 +10,15 @@ typedef struct FileContents {
 
 typedef struct FileContext	{
 
-}
+	char* fileContents;
+	int length;
+
+	FILE* f;
+
+} FileContext;
+
+
+struct FileContext readFile( char* fn );
 
 
 

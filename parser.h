@@ -39,18 +39,17 @@ typedef struct CSTNode	{
 
 }	CSTNode;
 
-
 // FUNCTIONS
-int Parse( struct LexInstance* );
-void AddNode( struct CSTNode*, struct CSTNode* ancestor );
-void AddNode( struct CSTNode* node, struct CSTNode* ancestor );
-void AddLeaf( struct CSTNode* node, struct CSTNode* ancestor );
-void PushParserStack( char* prRule, char*** collection, int amount, struct ParserInstance* );
-char** getNextProductionRuleSegment( struct LexInstance* lexer );
+extern int Parse( struct LexInstance* );
+extern void AddNode( struct CSTNode*, struct CSTNode* ancestor );
+extern void AddNode( struct CSTNode* node, struct CSTNode* ancestor );
+extern void AddLeaf( struct CSTNode* node, struct CSTNode* ancestor );
+extern void PushParserStack( char* prRule, char*** collection, int amount, struct ParserInstance* );
+extern char** getNextProductionRuleSegment( struct LexInstance* lexer );
 
 // INITIALIZATION FUNCTIONS
-struct CSTNode* initNode( char* nodeName );
-struct ParseInstance* InitParserStack(void);
+extern struct CSTNode* initNode( char* nodeName );
+extern struct ParseInstance* InitParserStack(void);
 
 #endif
 

@@ -52,9 +52,10 @@ int main( int argc, char** argv )	{
 	}
 
 	else	{
-
+		
+		fflush( stdout );
 		report( "%sLexer completed lexing of file %s.%s\n", FG_BRIGHT_YELLOW, sc, NORMAL );
-
+		fflush( stdout );
 	}
 	return 0;
 }

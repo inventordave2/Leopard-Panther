@@ -36,22 +36,19 @@ typedef struct LexInstance	{
 } LexInstance;
 
 
-int extend( void* _ );
+extern int extend( void* _ );
 
-char*** initRuleSetArray( int numRules );
-char*** initTokenResultsArray( int assumpt );
+extern char*** initRuleSetArray( int numRules );
+extern char*** initTokenResultsArray( int assumpt );
 
 
 //// LEXER
 // FUNCTIONS
-struct LexInstance* initLex( char* sc, char* lr );
-int lex( struct LexInstance* );
-char* patternMatch( char* str, struct LexInstance* );
-void push( char* token_type, char* literal, struct LexInstance* );
-char* checkType( char* token, LexInstance* Lexer );
-
-
-
+extern struct LexInstance* initLex( char* sc, char* lr );
+extern int lex( struct LexInstance* );
+extern char* patternMatch( char* str, struct LexInstance* );
+extern void push( char* token_type, char* literal, struct LexInstance* );
+extern char* checkType( char* token, LexInstance* Lexer );
 
 #endif // DAVELIB_SIMPLE_LEXER_H
 

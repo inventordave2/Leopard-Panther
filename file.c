@@ -51,8 +51,6 @@ char* getline_file( char* fn, int lineNum )	{
 	return fc.lines[ lineNum ];
 }
 
-
-
 struct FileContents read_f_split( char* fn, char* delim )	{
 
 	FILE* f;
@@ -85,12 +83,11 @@ struct FileContents read_f_split( char* fn, char* delim )	{
 		else
 			line[x++] = c;
 
-		line[ x ] = '\0';
-
 		c = fgetc( f );
 	}
 
 	fclose( f );
+	fc.lineCount = y;
 
 	return fc;
 }

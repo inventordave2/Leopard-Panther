@@ -7,6 +7,10 @@ OPTIM=-O0
 
 .PHONY: clean clean-all
 
+
+regex: regex.c regex.h
+	$(CC) $(DEBUG) $(OPTIM) -c regex.c -o regex.o
+	
 filemethods: file.c file.h
 	$(CC) $(DEBUG) $(OPTIM) -c file.c -o filemethods.o
 
@@ -19,11 +23,11 @@ lexer: lexer.c lexer.h
 parser: parser.c parser.h
 	$(CC) $(DEBUG) $(OPTIM) -c parser.c -o parser.o
 
-test: filemethods lexandparsepkg
-	$(CC) $(DEBUG) $(OPTIM) filemethods.o lexer.o parser.o lexertest.o ./stringy/stringyd.o ./colour/colourd.o ./regex_w/regexd.o  -o test.exe
+test: lexandparsepkg
+	$(CC) $(DEBUG) $(OPTIM) regex.o filemethods.o lexer.o parser.o lexertest.o ./stringy/stringyd.o ./colour/colourd.o ./regex_w/regexd.o  -o test.exe
 
 
-lexandparsepkg: lexer parser lexertest filemethods
+lexandparsepkg: lexer parser lexertest filemethods regex
 
 	make -C ./colour colourd
 	make -C ./stringy stringyd
@@ -37,4 +41,4 @@ clean:
 clean-all: clean
 	make -C ./colour/ clean
 	make -C ./stringy/ clean
-
+	

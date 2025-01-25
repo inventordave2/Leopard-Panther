@@ -129,7 +129,7 @@ char* ANSIVT( char* str, char** cc, long long int* offsets )	{
 		++cc;
 		++q;
 
-		if( *cc == '\0' )	{
+		if( **cc == '\0' )	{
 
 			unsigned long long int y = strlen(_);
 			for( unsigned long long int x=t;x<str_width; x++ )
@@ -143,7 +143,6 @@ char* ANSIVT( char* str, char** cc, long long int* offsets )	{
 	return _;
 }
 
-
 // ANSI/VT Global Refs.
 char* ANSIVT_FG;
 char* ANSIVT_BG;
@@ -155,28 +154,28 @@ char ResetAnsiVtCodes(char f)	{
 
 	// ..... INIT ALL THE STRING PTRS.
 
-		BOLD = malloc( 8 * sizeof(char) );// 
-		UNDERLINE = malloc( 8 * sizeof(char) ); // 
-		TAB = malloc( 8 * sizeof(char) ); // 
-		LINEFEED = malloc( 8 * sizeof(char) ); // 
-		CARRAIGERETURN = malloc( 8 * sizeof(char) ); // 
-		CRSRBACKSPACE = malloc( 8 * sizeof(char) ); // 
-		BELL = malloc( 8 * sizeof(char) ); // 
+	BOLD = malloc( 8 * sizeof(char) );// 
+	UNDERLINE = malloc( 8 * sizeof(char) ); // 
+	TAB = malloc( 8 * sizeof(char) ); // 
+	LINEFEED = malloc( 8 * sizeof(char) ); // 
+	CARRAIGERETURN = malloc( 8 * sizeof(char) ); // 
+	CRSRBACKSPACE = malloc( 8 * sizeof(char) ); // 
+	BELL = malloc( 8 * sizeof(char) ); // 
 
-		CLS = malloc( 8 * sizeof(char) );
-		MOV_CRSR_TOPLEFT = malloc( 8 * sizeof(char) ); 
-		CLEAR_TO_REST_OF_LINE = malloc( 8 * sizeof(char) ); 
-		MOV_CRSR_DOWN_N = malloc( 8 * sizeof(char) );
-		MOV_CRSR_UP_N = malloc( 8 * sizeof(char) );
-		MOV_CRSR_LEFT_COLS = malloc( 8 * sizeof(char) );
-		MOV_CRSR_RIGHT_COLS = malloc( 8 * sizeof(char) );
+	CLS = malloc( 8 * sizeof(char) );
+	MOV_CRSR_TOPLEFT = malloc( 8 * sizeof(char) ); 
+	CLEAR_TO_REST_OF_LINE = malloc( 8 * sizeof(char) ); 
+	MOV_CRSR_DOWN_N = malloc( 8 * sizeof(char) );
+	MOV_CRSR_UP_N = malloc( 8 * sizeof(char) );
+	MOV_CRSR_LEFT_COLS = malloc( 8 * sizeof(char) );
+	MOV_CRSR_RIGHT_COLS = malloc( 8 * sizeof(char) );
 
-		CLEAR_LINE = malloc( 8 * sizeof(char) );
-		CLEAR_LINE_CURSOR_RIGHT = malloc( 8 * sizeof(char) );
-		CLEAR_LINE_CURSOR_LEFT = malloc( 8 * sizeof(char) );
-		CLEAR_TO_REST_OF_SCREEN = malloc( 8 * sizeof(char) );
-		SET_COLS_TO_132 = malloc( 8 * sizeof(char) );
-		SET_COLS_TO_80 = malloc( 8 * sizeof(char) );
+	CLEAR_LINE = malloc( 8 * sizeof(char) );
+	CLEAR_LINE_CURSOR_RIGHT = malloc( 8 * sizeof(char) );
+	CLEAR_LINE_CURSOR_LEFT = malloc( 8 * sizeof(char) );
+	CLEAR_TO_REST_OF_SCREEN = malloc( 8 * sizeof(char) );
+	SET_COLS_TO_132 = malloc( 8 * sizeof(char) );
+	SET_COLS_TO_80 = malloc( 8 * sizeof(char) );
 
 
 	FG_BLACK = malloc ( 8 * sizeof(char) );
@@ -428,19 +427,32 @@ char* SetVT( char* fg, char* bg )	{
 	}
 
 	NEXT:
-
-	char* _ = malloc( strlen(ANSIVT_FG)+strlen(ANSIVT_BG) + strlen("//") );
+	
+	char* avtfg;
+	char* avtbg;
+	
+	if( ANSIVT_FG==NULL )
+		avtfg = "";
+	else
+		avtfg = ANSIVT_FG;
+	
+	if( ANSIVT_BG==NULL )
+		avtbg = "";
+	else
+		avtbg = ANSIVT_BG;
+	
+	char* _ = malloc( strlen( "12345678" )+strlen( "12345678" ) + strlen("//") );
 
 	_[0] = '\0';
 
-	if( strlen(ANSI->ANSIVT_FG) )	
-	safecat( _, ANSI->ANSIVT_FG );
+	if( strlen( avtfg ) )	
+		safecat( _, ANSI->ANSIVT_FG );
 	else
-	safecat( _,"Default" );
+		safecat( _, "Default" );
 
-	safecat( _,"//" );	
+	safecat( _, "//" );	
 
-	if( strlen(ANSI->ANSIVT_BG) ) 
+	if( strlen( avtbg ) ) 
 	safecat( _,ANSI->ANSIVT_BG );
 	else
 	safecat( _,"Default" );	
@@ -605,6 +617,8 @@ void Init_ANSIVT_CTABLE( _ANSI_* ANSIobj ){
 
 _ANSI_* colorMode()	{
 
+	ResetAnsiVtCodes( 1 );
+	
 	ANSIVT_FG = FG_BRIGHT_YELLOW;
 	ANSIVT_BG = BG_BRIGHT_BLUE;
 

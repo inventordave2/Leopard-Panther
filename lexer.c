@@ -90,9 +90,6 @@ char* checkType( char* token, LexInstance* Lexer )	{
 	return type;
 }
 
-
-
-
 char** getStringList( char* str, char* pattern )	{
 
 	int e, ep, x;
@@ -205,8 +202,15 @@ int lex( struct LexInstance* lexer )	{
 
 void push( char* token_type, char* literal, struct LexInstance* lexer )	{
 
-	lexer->tokens[lexer->tokensCount][0] = getstring( token_type );
-	lexer->tokens[lexer->tokensCount][1] = getstring( literal );
+	char** entry = (char**)malloc( sizeof(char*) * 2 );
+	
+	char* type = getstring( token_type );
+	char* lit = getstring( literal );
+	
+	entry[0] = type;
+	entry[1] = lit;
+	
+	lexer->tokens[lexer->tokensCount] = entry;
 
 	lexer->tokensCount++;
 
@@ -250,6 +254,7 @@ struct LexInstance* initLex( char* sc, char* lr )	{
 	char* line;
 	char* found;
 	int i;
+	void* ptr;
 	for( i=0; i<fc_lex.lineCount; i++ )	{
 
 		line = fc_lex.lines[i];
@@ -261,14 +266,27 @@ struct LexInstance* initLex( char* sc, char* lr )	{
 			printf( "Invalid format for '%s' lex file, @ line '%d'.\n", lr, i+1 );
 			return lexInstance;
 		}
-		else
-			lexInstance->tokenRules[i][lexInstance->TOK_TYPE] = getstring( found );
-
-		offset = strlen( found );
-		free( found );
+		else	{  x--q			// remove trailing whitespace
+			int x;
+			for( x=strlen(found)-1; x>=0; x-- )
+				if( (found[x] != ' ')||(found[x] != '\t') )
+					break;
+				
+			// trim 'found'
+			found[x+1] = '\0';
+			ptr = lexInstance->tokenRules;
+			ptr+=i;
+			ptr+=lexInstance->TOK_TYPE;
+			ptr = getstring( found );
+		}
 		
-		line += offset;
-		lexInstance->tokenRules[i][lexInstance->TOK_REGEX] = getstring( line );
+		offset = strlen( found );
+		
+		line = fc_lex.lines[i];
+		line += offset+1;
+		ptr = lexInstance->tokenRules;
+		ptr += i;
+		ptr += lexInstance->TOK_REGEX;
 
 		line -= offset; // need to reset ptr to allocated location before freeing.
 		free( line );
@@ -277,264 +295,6 @@ struct LexInstance* initLex( char* sc, char* lr )	{
 	// LEXINSTANCE prepared. Return the Active Lex Instance.
 	return lexInstance;
 }
-
-int Parse( struct LexInstance* lexer	)	{
-
-	int x, x2, x3, x4;
-	int flag;
-
-	char* line;
-	char** segments;
-	char** terms;
-	char* term;
-	
-	char* ruleName;
-	char* prRule;
-
-	char* prsegment;
-	char* token_type;
-	char* token;
-	
-	// lexInstance->productionRules = (char****) calloc( sizeof(char*), max_num_rules * max_num_segments * max_num_entries_in_a_segment );
-	// char**** productionRules; //[][][]
-	// [ruleNum][segmentNum][entryInSegment]
-
-	int max_num_rules = 512;
-	int max_num_segments = 64;
-	int max_num_entries_in_a_segment = 32;
-	
-	for( x=0; x<max_num_rules; x++ )	{
-
-		line = getline_file( lexer->parseRulesFileName,x );
-		ruleName = match_string( "^([a-zA-Z_0-9]+)\\:", line );
-		lexer->productionRules[x][0][0] = getstring( ruleName );
-		free( ruleName );
-
-		segments = split( line, '|' );
-
-		for( x2=0; x2<max_num_segments; x2++ )	{
-
-			terms = split( segments[ x2 ], ' ' );
-			
-			for( x3=0; x3<max_num_entries_in_a_segment; x3++ )	{
-
-				term = terms[ x3 ];
-				lexer->productionRules[x][x2][x3] = term;
-				free( term );
-			}
-
-			free( terms );
-		}
-
-		free( line );
-		free( segments );
-	}
-				
-	// INIT
-	getNextProductionRuleSegment( NULL );
-
-	// FOR_EACH lexed token in the Lexer stream.
-	
-	for( x=0; x<lexer->tokensCount; x++ )	{
-
-		
-		token_type = lexer->tokens[x][0];
-		token = lexer->tokens[x][1];
-		
-		// if the PR entry is a non-terminal, we need to recursively stack (LIFO), until we find a terminal definition.
-		// if that terminal definition matches an entry in a production-rule segment, we need to wait until the full production-rule section
-		// is matched by sequential tokens.
-
-		section_scan:
-
-		prsegment = getNextProductionRuleSegment( lexer );
-		
-		if( prsegment == NULL )	{
-			
-			// out of production rule segments.
-			break;
-		}
-		
-		unsigned y=0;
-		char* _ = prsegment[0];
-
-		if( _ == NULL )	{
-			
-			// This edge case shouldn't arise, but it constitutes a production rule nonterminal/terminal decleration at the
-			// beginning of a production rule section/segment that is NULL.
-
-			fprintf( stderr, "%s%sDEBUG MSG:%s %sAn Edge Case has arisen. A production rule has a NULL nonterminal/terminal decleration \
-				at the beginning of one of it's segments. Rule Name: %s'%s%s%s'%s.\n", BG_GREEN, FG_BRIGHT_YELLOW, NORMAL, FG_BRIGHT_BLUE,\
-				FG_WHITE, FG_BRIGHT_GREEN, *getNextProductionRuleSegment( (void*)1 ), FG_WHITE, NORMAL );
-			
-			break;
-		}
-
-		x2 = x;
-		flag = 1; // assume match will be found in section/segment.
-		while( _ != NULL )	{
-
-			if( strcmp(_,token_type) )	{
-
-				flag = 0; // match not found.
-				x2 = x;
-				break;	  // skip to next section
-			}
-			else	{
-
-				// token match to token_type in current prSegment.
-				_ = prsegment[ ++y ];
-
-
-				token_type = lexer->tokens[++x2][0];		
-				token = lexer->tokens[++x2][1];
-						
-				continue;
-			}
-		}
-		
-		if( flag!=1 )	{	
-			// unable to match to entry (token) in segment.
-			goto section_scan;
-		}
-
-		// ELSE, reset PoductionRules' static scanner, set latest PR-type, and continue anew from next token in stream.
-		prsegment = getNextProductionRuleSegment( NULL );
-
-		char*** collection = (char***) malloc( sizeof(char*) * (x2-x) * 2 );
-		unsigned j;
-		for( j=x; j<x2; j++ )	{
-
-			collection[j-x] = lexer->tokens[j];
-		}
-
-		prRule = getNextProductionRuleSegment( (void*)1 );
-		
-		PushParserStack( prRule, collection, j+1, lexer->parser );
-
-		x = x2;
-		flag = 0;
-
-		// tautological, included for clarity.
-		continue;
-	}
-
-	if( lexer->tokensCount != x )	{
-
-		fprintf( stderr, "%squickparse failed to complete parsing of source file '%s' at token '%d'%s\n", \
-			FG_BRIGHT_RED, lexer->sourceCodeFileName, x-1, NORMAL );
-		return 0;
-	}
-
-	printf( "%sHuzzah! Quickparse completed parsing of source file '%s'%s\n.", FG_GREEN, lexer->sourceCodeFileName, NORMAL );
-	return 1;
-}
-
-char** split( char* line, char delim )	{
-
-	int i, k;
-
-	char** results = (char**) calloc( sizeof(char*), 32 );
-	int strlen_line = strlen( line );
-
-	int in_quotes = 0;
-	int in_singlequotes = 0;
-	int escaped = 0;
-	k=0; 
-	for( i=0; i<strlen_line; i++ )	{
-
-		if( (line[i] == delim) && (escaped==0) && (in_quotes==0) )			{
-
-			line[i] = '\0';
-			results[k++] = getstring( line );
-			line[i] = delim;
-			line += (i+1);
-			i = 0;
-			strlen_line = strlen( line );
-
-			continue;
-		}
-
-		if( line[i] == '"' &&escaped==0 )
-			(in_quotes==0) ? (in_quotes=1) : (in_quotes=0);
-		
-		if( line[i] == '\'' && escaped==0 && in_singlequotes==1 )
-			in_singlequotes=0;
-		else if( line[i] == '\'' && escaped==0 && in_singlequotes==0 )
-			in_singlequotes=1;
-
-		if( line[i] == '\'' && in_singlequotes==1 )
-				in_singlequotes=0;
-
-		if( escaped==1 )
-			escaped=0;
-		else if( line[i] == '\\' )
-			escaped=1;
- 
-	}
-
-	return results;
-}
-
-struct ParserInstance* InitParserInstance(void)	{
-	struct ParserInstance* parser = (struct ParserInstance*) calloc( 1, sizeof(struct ParserInstance) );
-	
-	parser->lexer = NULL;
-	parser->parse = NULL;
-
-	parser->Root = NULL;
-
-	parser->AddNode = AddNode;
-	
-}
-
-void PushParserStack( char* prRule, char*** collection, int amount 
-, struct ParserInstance* parser )	{
-
-	struct CSTNode* node = initNode( getstring(prRule) );
-	
-	node->descendents = (struct CSTNode**) malloc( sizeof(struct CSTNode*) * amount );
-	node->numDescendents = amount;
-
-	char* _;
-	struct CSTNode* subNode;
-	int x, y;
-	x=0, y=0;
-	for( x=0; x<amount; x++ )	{
-
-		char* tt = collection[x][0];
-		subNode = initNode( tt );
-
-		if( checkType( tt, parser->lexer )=="T" )	{
-
-			#ifndef TOKEN_LITERAL
-			#define TOKEN_LITERAL 1
-			#endif
-			// Terminal.
-			// This has the side-effect that if any
-			// leaf nodes upon parse completion
-			// are not Terminals, the parse
-			// has failed.
-
-			subNode->isTerminal = 1;
-			subNode->termStr = getstring( collection[x][1] );
-			
-		}
-		else	{
-			// NonTerminal.
-			subNode->isTerminal = 0;
-		}
-
-		//subNode->ancestor = node;
-		//node->descendents[x] = subNode;
-		AddNode( subNode, node );
-	}
-
-	return;
-}
-
-
-
 
 int extend( void* self )	{
 
@@ -547,20 +307,5 @@ int extend( void* self )	{
 		numEntries = newNumOfEntries;
 
 	return success;
-}
-
-struct CSTNode* initNode( char* nodeName )	{
-
-	struct CSTNode* _ = (struct CSTNode*) calloc( sizeof(struct CSTNode),1 );
-	
-	_->nodeName = getstring( nodeName );
-	_->ancestor = NULL;
-	_->descendents = NULL;
-	_->numDescendents = 0;
-
-	_->termStr = NULL;
-	_->isTerminal = 0;
-
-	return _;
 }
 

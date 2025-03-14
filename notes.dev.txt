@@ -1,0 +1,3 @@
+notes.dev.txt
+
+An input pattern on the cmd-line with a '.', the '.' is not being escaped, so the regex subsystem treats it as a special character, rather than literal. Also, when I include the escape char '\', whether 1, 2, or 4, it doesn't cause the '.' to become escaped.

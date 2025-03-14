@@ -1,5 +1,3 @@
-// DAVELIB_LEXER_C
-
 #include <stdlib.h>
 #include <stdio.h>
 // LEXER & PARSER Includes. 
@@ -33,6 +31,7 @@ char* patternMatch( char* str, struct LexInstance* lexer )	{
 
 		if(!r) {
 
+			/**
 			fprintf(stderr,
 				"\n[%s:%d] ERROR......: %s\n%s\n%d\n",
 				lexer->sourceCodeFileName,
@@ -40,7 +39,9 @@ char* patternMatch( char* str, struct LexInstance* lexer )	{
 				wrx_error(e),
 				pattern,
 				ep );
-
+			*/
+			
+			fprintf( stderr, "%sUnable to generate Regex object from pattern: %s'%s'%s\n", FG_BRIGHT_RED, FG_BRIGHT_YELLOW, pattern, NORMAL );
 			token_type = NULL;
 			break;
 		}
@@ -63,9 +64,7 @@ char* patternMatch( char* str, struct LexInstance* lexer )	{
 		if(e < 0)
 			fprintf(stderr, "Error: %s\n", wrx_error(e));
 		
-		if( e <= 0 )
-			token_type = NULL;
-		else
+		if( e > 0 )
 			break;
 		
 		free(subm);
@@ -74,6 +73,8 @@ char* patternMatch( char* str, struct LexInstance* lexer )	{
 		x++;
 	}
 	
+	if( e==0 )
+		token_type = NULL;
 	// If we got here, wregex has either matched the pattern to the rule, or has failed to find a match in the Ruleset.
 	return token_type;
 }
@@ -175,6 +176,7 @@ int lex( struct LexInstance* lexer )	{
 	int error = 1;
 	char* _ = (char*) calloc( 256, 1 );
 	char* match;
+	char* match_bkp;
 	
 	for( i=0; i<lexer->strlen_sourceCode; i++ )	{
 
@@ -184,16 +186,58 @@ int lex( struct LexInstance* lexer )	{
 		_[k++] = c;
 		_[k] = '\0';
 		
-		if( (match = patternMatch( _,lexer ))==NULL )	{
+		
+		if( !strcmp( _, ";" ) )	{
+			
+			match = getstring( "SEMI_COLON" );
+			k = 0;
+			push( match, _, lexer );
+		}
+		else if( !strcmp( _, "\n" ) )	{
+			
+			match = getstring( "NEWLINE" );
+			k = 0;
+			push( match, _, lexer );			
+		}
+		else if( !strcmp( _, "\t" ) )	{
+			
+			match = getstring( "TAB" );
+			k = 0;
+			push( match, _, lexer );
+			
+		}
+		else  if( !strcmp( _, "\r" ) )	{
 
-			error = 1;
+			match = getstring( "CARRAIGE_RETURN" );
+			k = 0;
+			push( match, _, lexer );		
+		}
+		else if( !strcmp( _, " " ) )	{
+
+			match = getstring( "SPACE" );
+			k = 0;
+			push( match, _, lexer );
+		}
+		
+		else if( (match = patternMatch( _,lexer ))!=NULL )	{
+
+			error = 0;
+			match_bkp = match;
 			continue;
 		}
 		else	{
 			
+			if( error==1 ) // no match from substring yet.
+				continue;
+
+			error = 1;
+			
+			_[ --k ] = '\0';
 			k = 0;
-			error = 0;
-			push( match, _, lexer );
+			i--;
+			
+			push( match_bkp, _, lexer );
+			continue;
 		}
 	}
 
@@ -257,39 +301,30 @@ struct LexInstance* initLex( char* sc, char* lr )	{
 	void* ptr;
 	for( i=0; i<fc_lex.lineCount; i++ )	{
 
+		lexInstance->tokenRules[i] = (char**) calloc( 2, sizeof(char*) );
+
 		line = fc_lex.lines[i];
 		//tokenRules[i][TOK_TYPE] = strtok(line, "\t");
 		
-		found = strtok( line,"\t");
+		found = strtok( line," \t\r\n");
+		
 		if( found==NULL)
 		{
-			printf( "Invalid format for '%s' lex file, @ line '%d'.\n", lr, i+1 );
-			return lexInstance;
-		}
-		else	{  x--q			// remove trailing whitespace
-			int x;
-			for( x=strlen(found)-1; x>=0; x-- )
-				if( (found[x] != ' ')||(found[x] != '\t') )
-					break;
-				
-			// trim 'found'
-			found[x+1] = '\0';
-			ptr = lexInstance->tokenRules;
-			ptr+=i;
-			ptr+=lexInstance->TOK_TYPE;
-			ptr = getstring( found );
+			break;
 		}
 		
-		offset = strlen( found );
-		
-		line = fc_lex.lines[i];
-		line += offset+1;
-		ptr = lexInstance->tokenRules;
-		ptr += i;
-		ptr += lexInstance->TOK_REGEX;
+		lexInstance->tokenRules[i][lexInstance->TOK_TYPE] = getstring( found );
 
-		line -= offset; // need to reset ptr to allocated location before freeing.
-		free( line );
+		found = strtok( NULL, " \t\r\n" );
+
+		if( found==NULL )	{
+
+			lexInstance->tokenRules[i][lexInstance->TOK_TYPE] = NULL;
+			break;
+		}
+
+		lexInstance->tokenRules[i][lexInstance->TOK_REGEX] = getstring( found );
+	
 	}
 
 	// LEXINSTANCE prepared. Return the Active Lex Instance.

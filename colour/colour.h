@@ -36,7 +36,7 @@ typedef struct _ANSI_ {
 	char* (*bg)( char* );
 	char* (*f)( char* ); // eg, +i, +b, -i, -b, and so on.
 
-	char* * ANSIVT_CTABLE;
+	char*** ANSIVT_CTABLE;
 
 } _ANSI_;
 

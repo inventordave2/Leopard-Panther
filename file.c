@@ -92,8 +92,6 @@ struct FileContents read_f_split( char* fn, char* delim )	{
 	return fc;
 }
 
-
-
 struct FileContext readFile( char* fn )	{
 
 	struct FileContext fileContext;
@@ -105,7 +103,7 @@ struct FileContext readFile( char* fn )	{
 	int flen = ftell( f );
 	fseek( f, 0, SEEK_SET );
 
-	fileContext.fileContents = (char*) calloc( flen, sizeof(char) );
+	fileContext.fileContents = (char*) calloc( flen+1, sizeof(char) );
 
 	int x = 0;
 	c = fgetc( f );

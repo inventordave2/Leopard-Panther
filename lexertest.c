@@ -1,20 +1,17 @@
-// LEXERTEST_C
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <stdlib.h> 
+#include <stdio.h> 
+#include <string.h> 
 
 #include "./stringy/stringy.h"
 #include "./colour/colour.h"
 
-#include "lexer.h"
-#include "parser.h"
-#include "lexertest.h"
-
-
+#include "lexer.h" 
+#include "parser.h" 
+#include "lexertest.h" 
 
 int main( int argc, char** argv )	{
 
+	ansivt = 1;
 	colorMode();
 	
 	print( "%sWelcome to %sDaveLib%s's testversion of a %sC--%s lexer.%s\n", \
@@ -24,7 +21,7 @@ int main( int argc, char** argv )	{
 	if( argc>1 )
 		sc = getstring( argv[1] );
 	else
-		sc = "lexer.c";
+		sc = "test.c";
 
 	char* lr;
 	if( argc>2 )
@@ -32,31 +29,55 @@ int main( int argc, char** argv )	{
 	else
 		lr = "c--.lex";
 	
+	char* teststr;
+	if( argc>3 )	{
+		teststr = getstring( "" );
+		strcat( teststr, getstring(argv[3]) );
+		strcat( teststr, "" );
+		//getstring( argv[3] );
+	}
+	else
+		teststr = NULL;"[0-9]+\\.[0-9]*";
+	
 	struct LexInstance* lexer = initLex( sc, lr );
+	
+
+	// QUICKTEST
+	
+	if( teststr != NULL )	{
+		
+		char* result = patternMatch( teststr, lexer );
+		
+		if( result!= NULL )
+			printf( "result = %s\n", result );
+		else
+			printf( "result is NULL.\n" );
+		exit( 0 );
+	
+	}
+	//
+
 	
 	int success = lex( lexer );
 
 	if( !success )	{
 		
-		report( "Lexer is reporting failure to lex file %s.\n", sc );
+		printf( "Lexer is reporting failure to lex file '%s'.\n", sc );
+	}
+	else
+		printf( "Lexer %sSUCCESSFULL!!%s\n", FG_BRIGHT_GREEN, NORMAL );
+
+	int x;
+	for( x=0; x<lexer->tokensCount; x++ )	{
+
+		if( lexer->tokens[x][0]==NULL )
+			break;
 		
-		int x;
-		for( x=0; x<lexer->tokensCount; x++ )	{
-	
-			if( lexer->tokens[x][0]==NULL )
-				break;
-			
-			report( "%sToken Type: %s%s\n%sToken Literal: %s%s%s\n", FG_BRIGHT_YELLOW, FG_BRIGHT_GREEN, FG_BRIGHT_YELLOW, lexer->tokens[x][0], \
-					FG_BRIGHT_GREEN, lexer->tokens[x][1], NORMAL );
-		}
+		printf( "%sToken Type: %s\nToken Literal: %s\n", lexer->tokens[x][0], lexer->tokens[x][1] );
+		
+		fflush( stdout );
 	}
 
-	else	{
-		
-		fflush( stdout );
-		report( "%sLexer completed lexing of file %s.%s\n", FG_BRIGHT_YELLOW, sc, NORMAL );
-		fflush( stdout );
-	}
 	return 0;
 }
 

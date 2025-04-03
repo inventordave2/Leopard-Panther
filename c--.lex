@@ -1,4 +1,8 @@
-GT					^\>$
+BACKSLASH			^[\\]$
+LF					^[\n]+$
+CR					^[\\r]+$
+SEMI_COLON			^;$
+GT					^[\\>]$
 INT_KWD				^int$
 NUM    				^[0-9]+$
 string				^[\\"][\w\s\\.\\!\\?\\-\\+\\/]*[\\"]$
@@ -23,7 +27,7 @@ ARRAY_KWD			^array|Array|ARRAY$
 TYPEDEF_KWD			^typedef$
 INSTANCEOF_KWD		^instanceof$
 SIZEOF_KWD			^sizeof$
-UNARY_INC			^[\\+]{2,2}$
+UNARY_INC			^\+{2,2}$
 UNARY_DEC			^[\\-]{2,2}$
 PLUS				^[\\+]$
 MINUS				^[\\-]$
@@ -37,7 +41,7 @@ LT					^[\\<]$
 HASH_SYM			^[#]$
 ASTERISK			^[\\*]$
 FORWARD_SLASH		^[/]$
-BACK_SLASH			^[\\\\]$
+BACK_SLASH			^\\\\$
 COLON				^[\\:]$
 PERIOD				^\.$
 ID       			^[a-zA-Z_][0-9_a-zA-Z]*$

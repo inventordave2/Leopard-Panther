@@ -16,10 +16,13 @@ typedef struct LexInstance	{
 	char* sourceCodeFileName;
 	char* sourceCode;
 	int strlen_sourceCode;
+	int filelen_expansion;
 
 	int carat;
 	char*** tokens;
 	int tokensCount;
+	
+	int isControlSequence;
 
 	// init :  sizeof(char*) * n * max_num_segments * max_num entries in a segment
 	char**** productionRules; //[][][]

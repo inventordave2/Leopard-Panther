@@ -1,3 +1,4 @@
+
 #include <stdlib.h>
 #include <stdio.h>
 // LEXER & PARSER Includes. 
@@ -172,7 +173,7 @@ int lex( struct LexInstance* lexer )	{
 	int i;
 	int k = 0;
 	char c;
-
+	
 	int error = 1;
 	char* _ = (char*) calloc( 256, 1 );
 	char* match;
@@ -183,40 +184,52 @@ int lex( struct LexInstance* lexer )	{
 		lexer->carat = i;
 		
 		c = lexer->sourceCode[i];
+		
+		/**
+		switch( c )	{
+		
+			case '\r':
+				lexer->filelen_expansion++;
+				lexer->isControlSequence = 1;
+				_[k++] = '\\';
+				c = 'r';
+				break;
+				
+			case '\n':
+				lexer->filelen_expansion++;
+				lexer->isControlSequence = 1;
+				_[k++] = '\\';
+				c = 'n';
+				break;
+				
+			case '\t':
+				lexer->filelen_expansion++;
+				lexer->isControlSequence = 1;
+				_[k++] = '\\';
+				c = 't';
+				break;
+
+			case '\\':
+				lexer->filelen_expansion++;
+				lexer->isControlSequence = 1;
+				_[k++] = '\\';
+				c = '\\';
+				break;
+				
+			default:
+				lexer->isControlSequence = 0;
+				break;
+		}
+		*/
 		_[k++] = c;
 		_[k] = '\0';
-		
-		
-		if( !strcmp( _, ";" ) )	{
-			
-			match = getstring( "SEMI_COLON" );
-			k = 0;
-			push( match, _, lexer );
-		}
-		else if( !strcmp( _, "\n" ) )	{
-			
-			match = getstring( "NEWLINE" );
-			k = 0;
-			push( match, _, lexer );			
-		}
-		else if( !strcmp( _, "\t" ) )	{
-			
-			match = getstring( "TAB" );
-			k = 0;
-			push( match, _, lexer );
-			
-		}
-		else  if( !strcmp( _, "\r" ) )	{
 
-			match = getstring( "CARRAIGE_RETURN" );
-			k = 0;
-			push( match, _, lexer );		
-		}
-		else if( !strcmp( _, " " ) )	{
+		if( !strcmp( _, " " ) )	{
 
 			match = getstring( "SPACE" );
 			k = 0;
 			push( match, _, lexer );
+			continue;
 		}
 		
 		else if( (match = patternMatch( _,lexer ))!=NULL )	{
@@ -232,15 +245,30 @@ int lex( struct LexInstance* lexer )	{
 
 			error = 1;
 			
+			if( lexer->isControlSequence )	{
+				
+				--k;
+			}
+			
 			_[ --k ] = '\0';
 			k = 0;
 			i--;
 			
 			push( match_bkp, _, lexer );
+			match_bkp = NULL;
 			continue;
 		}
 	}
 
+	// filelen_expansion will now hold an amount of strlen_sourceCode expansion through expanding whitespace control-codes from 1 narrow char
+	// to two. As these do not require extra storage space visa vie the lexer->sourceCode buffer, and lexer-carat is based on the sourceFile
+	// string, I will just keep this tracker for
+	
+	if( match_bkp != NULL )	{
+		
+		push( match_bkp, _, lexer );
+	}
+	
 	return !error;
 }
 
@@ -279,6 +307,7 @@ struct LexInstance* initLex( char* sc, char* lr )	{
 	lexInstance->sourceCodeFileName = sc;
 	lexInstance->sourceCode = fc_source.fileContents;
 	lexInstance->strlen_sourceCode = fc_source.length;
+	lexInstance->filelen_expansion = 0; // tracks expansion of whitespace narrow chars in source file (\t\n\r) to 2 printable chars '\\' and [rnt]
 
 	lexInstance->tokens = (char***) calloc( lexInstance->strlen_sourceCode, 2 * sizeof(char*) );
 	lexInstance->tokensCount = 0;

@@ -33,11 +33,10 @@ int main( int argc, char** argv )	{
 	if( argc>3 )	{
 		teststr = getstring( "" );
 		strcat( teststr, getstring(argv[3]) );
-		strcat( teststr, "" );
 		//getstring( argv[3] );
 	}
 	else
-		teststr = NULL;"[0-9]+\\.[0-9]*";
+		teststr = NULL;
 	
 	struct LexInstance* lexer = initLex( sc, lr );
 	
@@ -55,9 +54,7 @@ int main( int argc, char** argv )	{
 		exit( 0 );
 	
 	}
-	//
 
-	
 	int success = lex( lexer );
 
 	if( !success )	{
@@ -73,7 +70,7 @@ int main( int argc, char** argv )	{
 		if( lexer->tokens[x][0]==NULL )
 			break;
 		
-		printf( "%sToken Type: %s\nToken Literal: %s\n", lexer->tokens[x][0], lexer->tokens[x][1] );
+		printf( "Token Type: %s\nToken Literal: %s\n", lexer->tokens[x][0], lexer->tokens[x][1] );
 		
 		fflush( stdout );
 	}

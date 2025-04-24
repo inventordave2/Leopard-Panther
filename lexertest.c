@@ -17,6 +17,7 @@ int main( int argc, char** argv )	{
 	print( "%sWelcome to %sDaveLib%s's testversion of a %sC--%s lexer.%s\n", \
 			FG_BRIGHT_BLUE, FG_YELLOW, FG_BRIGHT_BLUE, FG_BRIGHT_YELLOW, FG_BRIGHT_BLUE, NORMAL );
 
+
 	char* sc;
 	if( argc>1 )
 		sc = getstring( argv[1] );
@@ -39,7 +40,6 @@ int main( int argc, char** argv )	{
 		teststr = NULL;
 	
 	struct LexInstance* lexer = initLex( sc, lr );
-	
 
 	// QUICKTEST
 	

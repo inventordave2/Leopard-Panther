@@ -6,8 +6,8 @@
 
 
 // W STOOP'S REGEX LIBRARY
-#include "regex_w/wregex.h"
-#include "regex_w/wrx_prnt.h"
+#include "./../wernee/regex_w/wregex.h"
+#include "./../wernee/regex_w/wrx_prnt.h"
 
 #include "regex.h"
 

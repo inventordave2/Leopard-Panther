@@ -1,4 +1,4 @@
-# Makefile for Lexer & Parser, written in C. Bison/Flez-free.
+# Makefile for Lexer & Parser, written in C. Bison/Flex-free.
 
 # Vars.
 CC=gcc
@@ -24,14 +24,14 @@ parser: parser.c parser.h
 	$(CC) $(DEBUG) $(OPTIM) -c parser.c -o parser.o
 
 test: lexandparsepkg
-	$(CC) $(DEBUG) $(OPTIM) regex.o filemethods.o lexer.o parser.o lexertest.o ./stringy/stringyd.o ./colour/colourd.o ./regex_w/regexd.o  -o test.exe
+	$(CC) $(DEBUG) $(OPTIM) regex.o filemethods.o lexer.o parser.o lexertest.o ./../stringy/stringyd.o ./../colour/colourd.o ./../wernee/regex_w/regexd.o  -o test.exe
 
 
 lexandparsepkg: lexer parser lexertest filemethods regex
 
-	make -C ./colour colourd
-	make -C ./stringy stringyd
-	make -C ./regex_w libd 
+	make -C ./../colour colourd
+	make -C ./../stringy stringyd
+	make -C ./../wernee/regex_w libd 
 
 clean:
 	rm -f *.o
@@ -39,6 +39,6 @@ clean:
 	rm -f test.exe
 	
 clean-all: clean
-	make -C ./colour/ clean
-	make -C ./stringy/ clean
+	make -C ./../colour/ clean
+	make -C ./../stringy/ clean
 	

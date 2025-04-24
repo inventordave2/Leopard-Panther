@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <stdio.h>
 // LEXER & PARSER Includes. 
@@ -9,8 +8,8 @@
 #include "file.h"
 
 // W STOOP'S REGEX LIBRARY
-#include "regex_w/wregex.h"
-#include "regex_w/wrx_prnt.h"
+#include "./../wernee/regex_w/wregex.h"
+#include "./../wernee/regex_w/wrx_prnt.h"
 
 // LEXER:: Match substring from start to a regex-defined TOKEN_TYPE.
 char* patternMatch( char* str, struct LexInstance* lexer )	{
@@ -80,13 +79,13 @@ char* patternMatch( char* str, struct LexInstance* lexer )	{
 	return token_type;
 }
 
-char* checkType( char* token, LexInstance* Lexer )	{
+char* checkType( char* token, LexInstance* lexer )	{
 
 	char* type = getstring( "NT" );
 
 	int i;
-	for( i=0; i<Lexer->numRules; i++ )
-		if( strcmp( token, Lexer->tokens[i][1] )==0 )
+	for( i=0; i<lexer->numRules; i++ )
+		if( strcmp( token, lexer->tokens[i][1] )==0 )
 			return ++type;
 
 	return type;
@@ -140,7 +139,7 @@ char** getStringList( char* str, char* pattern )	{
 				exit(EXIT_FAILURE);
 			}
 		}
-else
+		else
 			subm = NULL;
 	
 		e = wrx_exec(r, str, &subm, &r->n_subm);
@@ -262,7 +261,7 @@ int lex( struct LexInstance* lexer )	{
 
 	// filelen_expansion will now hold an amount of strlen_sourceCode expansion through expanding whitespace control-codes from 1 narrow char
 	// to two. As these do not require extra storage space visa vie the lexer->sourceCode buffer, and lexer-carat is based on the sourceFile
-	// string, I will just keep this tracker for
+	// string, I will just keep this tracker for metadata.
 	
 	if( match_bkp != NULL )	{
 		

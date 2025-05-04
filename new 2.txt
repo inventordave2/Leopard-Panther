@@ -1,0 +1,21 @@
+// C--.CFG
+
+START: statement | statements
+statements: statement | statements statement
+statement: statement SEMICOLON | expression | expression COMMA | SEMICOLON
+expression: if_block | function_expression | boolean_expression
+function_expression: ID OPEN_BRACE parameter_list_expression CLOSE_BRACE
+parameter_list_expression: parameter_list_expression COMMA parameter_list_expression | ID
+if_block: IF_KWD OPEN_BRACE expression CLOSE_BRACE code_block | IF_KWD OPEN_BRACE expression CLOSE_BRACE
+code_block: OPEN_CURLY_BRACE statements CLOSE_CURLY_BRACE
+boolean_expression: rlvalue boolean_operator rlvalue
+rlvalue: ID | number_literal
+number_literal: number_literal DIGIT | NUMBER | DIGIT | HEX_PREFIX DIGIT
+string_literal: DBL_QUOTE printable_chars DBL_QUOTE
+printable_chars: printable_chars printable_char | printable_char
+printable_char: ESC_DBLQUOTE_SEQ SGL_QUOTE DIGIT ALPHABET
+
+ESC_DBLQUOTE_SEQ: BACKSLASH DBL_QUOTE
+ALPHABET: 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z'
+DIGIT: '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'A' | 'B' | 'C' | 'D' |'E' | 'F'
+

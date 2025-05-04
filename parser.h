@@ -4,14 +4,14 @@
 #define DAVELIBE_PARSER_H_
 
 // DATA STRUCTURES
-typedef struct ParserInstance	{
+typedef struct Parser	{
 
 	struct LexInstance* lexer;
 
 	// Example Potential Usage:
 	// struct ParseInstance parseInstance = newParser( );
 	// int a = parseInstance.parse( &parseInstance );
-	int (*parse)( struct ParserInstance* self );
+	int (*parse)( struct Parser* self );
 
 	char* CFG; // filename of .cfg production rules file.
 	int numPRs; // number of production rules.
@@ -21,7 +21,7 @@ typedef struct ParserInstance	{
 	void (*AddNode)( struct CSTNode* node, struct CSTNode* ancestor );
 
 	void (*AddLeaf)( struct CSTNode* node, struct CSTNode* leaf );
-} ParserInstance;
+} Parser;
 
 typedef struct CSTNode	{
 

@@ -8,9 +8,9 @@
 #include "./../stringy/stringy.h"
 #include "./../fileywiley/fileywiley.h"
 #include "./../colour/colour.h"
-#include "regex.h"
-#include "lexer.h"
-#include "parser.h"
+#include "./regex.h"
+#include "./lexer.h"
+#include "./parser.h"
 
 int Parse( struct LexInstance* lexer	)	{
 
@@ -173,6 +173,8 @@ struct ParserInstance* InitParserInstance(void)	{
 	parser->Root = NULL;
 
 	parser->AddNode = AddNode;
+	parser->AddLeaf = AddLeaf;
+	
 	
 }
 
@@ -252,6 +254,8 @@ void AddLeaf( struct CSTNode* node, struct CSTNode* ancestor )	{
 
 void AddNode( struct CSTNode* node, struct CSTNode* ancestor )	{
 
+	node->isTerminal = 0;
+	
 	node->ancestor = (void*) ancestor;
 	int x = ancestor->numDescendents;
 

@@ -1,8 +1,10 @@
 BACKSLASH			^[\\]$
-LF					^[\n]+$
+LF					^[\\n]+$
 CR					^[\\r]+$
 SEMI_COLON			^;$
 GT					^[\\>]$
+DBLPIPE				^\|\|$
+PIPE				^\|^
 INT_KWD				^int$
 NUM    				^[0-9]+$
 string				^[\\"][\w\s\\.\\!\\?\\-\\+\\/]*[\\"]$
@@ -21,6 +23,9 @@ APFRACT_KWD			^ap|AP[_]{0,17}fract|Fract|FRACT|fractional|Fractional|FRACTIONAL$
 FRACT_KWD			^fract|Fract|FRACT|fractional|Fractional|FRACTIONAL$
 STRUCT_KWD			^struct|Struct|STRUCT$
 CHAR_KWD			^char|Char|CHAR$
+IF_KWD				^if$
+ELSE_KWD			^else$
+BREAK_KWD			^break$
 STRING_KWD			^string|String|STRING$
 PORT_KWD			^port|PORT$
 ARRAY_KWD			^array|Array|ARRAY$
@@ -38,13 +43,14 @@ SGLQUOT				^[\\']$
 GT_EQ				^[\>][\\=]$
 LT_EQ				^[\<][\\=]{1,}$
 LT					^[\\<]$
-HASH_SYM			^[#]$
+HASH_SYMBOL			^[#]$
 ASTERISK			^[\\*]$
+DBLQUOT				^"$
+SGLQUOT				^'$
 FORWARD_SLASH		^[/]$
 BACK_SLASH			^\\\\$
 COLON				^[\\:]$
 PERIOD				^\.$
-ID       			^[a-zA-Z_][0-9_a-zA-Z]*$
 CURLY_BRACE_OPEN	^\{$
 CURLY_BRACE_CLOSE	^\}$
 SQUARE_BRACE_OPEN	^\[$
@@ -59,3 +65,13 @@ CONDITIONAL_OP		^[\\?]$
 AT_SYM				^[\\@]$
 LOGICAL_EQUALS		^[\\=]{2,}$
 ASSIGN_OP			^[\\=]$
+STDLIB_FPRINTF		^fprintf$
+STDLIB_PRINTF		^printf$
+STDLIB_FFLUSH		^fflush$
+STDLIB_MALLOC		^malloc$
+STDLIB_CALLOC		^calloc$
+STDLIB_GETC			^getc\\b$
+AUTHOR				^leeodea$
+ID       			^[a-zA-Z_][0-9_a-zA-Z]*$
+SPACE				^[ ]+$
+TAB					^[\\t]+$

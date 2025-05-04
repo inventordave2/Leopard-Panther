@@ -5,9 +5,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "./stringy/stringy.h"
-#include "file.h"
-#include "./colour/colour.h"
+#include "./../stringy/stringy.h"
+#include "./../fileywiley/fileywiley.h"
+#include "./../colour/colour.h"
 #include "regex.h"
 #include "lexer.h"
 #include "parser.h"
@@ -163,8 +163,6 @@ int Parse( struct LexInstance* lexer	)	{
 	printf( "%sHuzzah! Quickparse completed parsing of source file '%s'%s\n.", FG_GREEN, lexer->sourceCodeFileName, NORMAL );
 	return 1;
 }
-
-
 
 struct ParserInstance* InitParserInstance(void)	{
 	struct ParserInstance* parser = (struct ParserInstance*) calloc( 1, sizeof(struct ParserInstance) );

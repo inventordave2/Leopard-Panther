@@ -1,94 +1,63 @@
 #include <stdlib.h>
 #include <stdio.h>
 // LEXER & PARSER Includes. 
-#include "./stringy/stringy.h"
-#include "./colour/colour.h"
+#include "./../stringy/stringy.h"
+#include "./../colour/colour.h"
+#include "./../fileywiley/fileywiley.h"
+
+#include "regex.h"
 #include "lexer.h"
 #include "parser.h"
-#include "file.h"
 
 // W STOOP'S REGEX LIBRARY
 #include "./../wernee/regex_w/wregex.h"
 #include "./../wernee/regex_w/wrx_prnt.h"
 
-// LEXER:: Match substring from start to a regex-defined TOKEN_TYPE.
-char* patternMatch( char* str, struct LexInstance* lexer )	{
+#define LEXERDIAGNOSTICSMSG( msgCode )
 
+// Match substring from start to a regex-defined TOKEN_TYPE.
+Token scanstring( char* str, struct LexInstance* ilexer )	{
+
+	static struct LexInstance* lexer = NULL;
+	static char* sc = NULL;
+	static char* lexrules = NULL;
+	
+	if( !ilexer )	{
+		
+		lexer = initLex( sc, lexrules );
+		if( !lexer )	{
+			
+			LEXERDIAGNOSTICSMSG( INIT_LEXER_FAILED )
+			return GetEmptyToken();
+		}
+	}
+	else
+		lexer = ilexer;
+	
+	
 	int e, ep;
 	wregex_t *r;
 	wregmatch_t *subm;
 
-	char* pattern;
-	char* token_type;
+	Token token;
 
 	int x = 0;
 	while( x < lexer->numRules )	{
 
-		token_type = lexer->tokenRules[x][0];
-		pattern = lexer->tokenRules[x][1];
 
-		r = wrx_comp(pattern, &e, &ep);
+		token = MatchStringToPattern( lexer->tokenRules[x][1], str );
 
-		if(!r) {
-
-			/**
-			fprintf(stderr,
-				"\n[%s:%d] ERROR......: %s\n%s\n%d\n",
-				lexer->sourceCodeFileName,
-				lexer->carat,
-				wrx_error(e),
-				pattern,
-				ep );
-			*/
-			
-			fprintf( stderr, "%sUnable to generate Regex object from pattern: %s'%s'%s\n", FG_BRIGHT_RED, FG_BRIGHT_YELLOW, pattern, NORMAL );
-			token_type = NULL;
+		if( token.pattern!=NULL )
 			break;
-		}
-
-		if(r->n_subm > 0) {
-
-			subm = calloc(sizeof *subm, r->n_subm);
-			if(!subm) {
-
-				fprintf(stderr, "Error: out of memory (submatches). Exiting Program.\n");
-				wrx_free(r);
-				exit(EXIT_FAILURE);
-			}
-		}
-		else
-			subm = NULL;
-	
-		e = wrx_exec(r, str, &subm, &r->n_subm);
-
-		if(e < 0)
-			fprintf(stderr, "Error: %s\n", wrx_error(e));
-		
-		if( e > 0 )
-			break;
-		
-		free(subm);
-		wrx_free(r);
 
 		x++;
 	}
 	
-	if( e==0 )
-		token_type = NULL;
+	if( token.pattern!=NULL )
+		token.token_name = getstring( lexer->tokenRules[x][0] );
+
 	// If we got here, wregex has either matched the pattern to the rule, or has failed to find a match in the Ruleset.
-	return token_type;
-}
-
-char* checkType( char* token, LexInstance* lexer )	{
-
-	char* type = getstring( "NT" );
-
-	int i;
-	for( i=0; i<lexer->numRules; i++ )
-		if( strcmp( token, lexer->tokens[i][1] )==0 )
-			return ++type;
-
-	return type;
+	return token;
 }
 
 char** getStringList( char* str, char* pattern )	{
@@ -159,7 +128,6 @@ char** getStringList( char* str, char* pattern )	{
 
 		wrx_free( r );
 		str += strlen( stringList[x] );
-		str += 1; // (to pass over the delimeter char)
 		x++;
 	}
 
@@ -175,16 +143,16 @@ int lex( struct LexInstance* lexer )	{
 	
 	int error = 1;
 	char* _ = (char*) calloc( 256, 1 );
-	char* match;
-	char* match_bkp;
+	
+	Token token;
+	Token match_bkp = GetEmptyToken();
 	
 	for( i=0; i<lexer->strlen_sourceCode; i++ )	{
 
 		lexer->carat = i;
 		
 		c = lexer->sourceCode[i];
-		
-		/**
+
 		switch( c )	{
 		
 			case '\r':
@@ -207,75 +175,61 @@ int lex( struct LexInstance* lexer )	{
 				_[k++] = '\\';
 				c = 't';
 				break;
-
-			case '\\':
+				
+			case '\e':
 				lexer->filelen_expansion++;
 				lexer->isControlSequence = 1;
 				_[k++] = '\\';
-				c = '\\';
+				c = 'e';
 				break;
-				
+
 			default:
 				lexer->isControlSequence = 0;
 				break;
 		}
-		*/
+		
 		_[k++] = c;
 		_[k] = '\0';
-
-		if( !strcmp( _, " " ) )	{
-
-			match = getstring( "SPACE" );
-			k = 0;
-			push( match, _, lexer );
-			continue;
-		}
 		
-		else if( (match = patternMatch( _,lexer ))!=NULL )	{
+		if( k>64 )
+			fprintf( stderr, "The string being populated at '%s':%d %s('%s')%s has reached 64 glyphs.\n", __FILE__, __LINE__, FG_BRIGHT_BLUE, _, NORMAL ), exit(0); 
+		token = scanstring( _,lexer );
+		
+		if( token.pattern != NULL )	{
 
 			error = 0;
-			match_bkp = match;
+			FreeToken( &match_bkp );
+			match_bkp = token;
+			
 			continue;
 		}
 		else	{
 			
-			if( error==1 ) // no match from substring yet.
-				continue;
-
-			error = 1;
-			
-			if( lexer->isControlSequence )	{
+			if( error==0 )	{
 				
-				--k;
+				error = 1;
+				_[k-1] = '\0';
+				push( match_bkp.token_name, getstring( _ ), lexer );
+				k = 0;
+				--i;
+				continue;
 			}
-			
-			_[ --k ] = '\0';
-			k = 0;
-			i--;
-			
-			push( match_bkp, _, lexer );
-			match_bkp = NULL;
-			continue;
 		}
+
 	}
 
 	// filelen_expansion will now hold an amount of strlen_sourceCode expansion through expanding whitespace control-codes from 1 narrow char
 	// to two. As these do not require extra storage space visa vie the lexer->sourceCode buffer, and lexer-carat is based on the sourceFile
 	// string, I will just keep this tracker for metadata.
 	
-	if( match_bkp != NULL )	{
-		
-		push( match_bkp, _, lexer );
-	}
-	
 	return !error;
 }
 
-void push( char* token_type, char* literal, struct LexInstance* lexer )	{
+void push( char* token_name, char* literal, struct LexInstance* lexer )	{
 
 	char** entry = (char**)malloc( sizeof(char*) * 2 );
 	
-	char* type = getstring( token_type );
+	char* type = getstring( token_name );
 	char* lit = getstring( literal );
 	
 	entry[0] = type;
@@ -306,13 +260,13 @@ struct LexInstance* initLex( char* sc, char* lr )	{
 	lexInstance->sourceCodeFileName = sc;
 	lexInstance->sourceCode = fc_source.fileContents;
 	lexInstance->strlen_sourceCode = fc_source.length;
-	lexInstance->filelen_expansion = 0; // tracks expansion of whitespace narrow chars in source file (\t\n\r) to 2 printable chars '\\' and [rnt]
+	lexInstance->filelen_expansion = 0; // tracks expansion of narrow chars in source file (such as \e\t\n\r) to 2 printable chars '\\' and [rnt]
 
 	lexInstance->tokens = (char***) calloc( lexInstance->strlen_sourceCode, 2 * sizeof(char*) );
 	lexInstance->tokensCount = 0;
 	lexInstance->lex = lex;
 
-	unsigned max_num_rules = 512;
+	unsigned max_num_rules = 65536;
 	unsigned max_num_segments = 64;
 	unsigned max_num_entries_in_a_segment = 32;
 	
@@ -327,6 +281,8 @@ struct LexInstance* initLex( char* sc, char* lr )	{
 	char* found;
 	int i;
 	void* ptr;
+	Token tokenData = GetEmptyToken();
+	
 	for( i=0; i<fc_lex.lineCount; i++ )	{
 
 		lexInstance->tokenRules[i] = (char**) calloc( 2, sizeof(char*) );
@@ -334,25 +290,16 @@ struct LexInstance* initLex( char* sc, char* lr )	{
 		line = fc_lex.lines[i];
 		//tokenRules[i][TOK_TYPE] = strtok(line, "\t");
 		
-		found = strtok( line," \t\r\n");
+
+		tokenData = MatchStringToPattern( "^[A-Za-z]+[A-Za-z_0-9]*", line );
+		lexInstance->tokenRules[i][lexInstance->TOK_TYPE] = getstring( tokenData.literal );
 		
-		if( found==NULL)
-		{
-			break;
-		}
+		line += tokenData.length;
+		FreeToken( &tokenData );
 		
-		lexInstance->tokenRules[i][lexInstance->TOK_TYPE] = getstring( found );
-
-		found = strtok( NULL, " \t\r\n" );
-
-		if( found==NULL )	{
-
-			lexInstance->tokenRules[i][lexInstance->TOK_TYPE] = NULL;
-			break;
-		}
-
-		lexInstance->tokenRules[i][lexInstance->TOK_REGEX] = getstring( found );
-	
+		char* rgxpatt = trim( line );
+		
+		lexInstance->tokenRules[i][lexInstance->TOK_REGEX] = rgxpatt;
 	}
 
 	// LEXINSTANCE prepared. Return the Active Lex Instance.

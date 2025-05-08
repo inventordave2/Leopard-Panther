@@ -5,9 +5,9 @@
 #include "./../colour/colour.h"
 #include "./../fileywiley/fileywiley.h"
 
-#include "regex.h"
-#include "lexer.h"
-#include "parser.h"
+#include "./regex.h"
+#include "./lexer.h"
+#include "./parser.h"
 
 // W STOOP'S REGEX LIBRARY
 #include "./../wernee/regex_w/wregex.h"
@@ -268,9 +268,8 @@ struct LexInstance* initLex( char* sc, char* lr )	{
 
 	unsigned max_num_rules = 65536;
 	unsigned max_num_segments = 64;
-	unsigned max_num_entries_in_a_segment = 32;
 	
-	lexInstance->productionRules = (char****) calloc( sizeof(char*), max_num_rules * max_num_segments * max_num_entries_in_a_segment );
+	lexInstance->productionRules = (char****) calloc( sizeof(char*), max_num_rules * max_num_segments * MAX_NUM_ENTRIES_IN_A_SEGMENT );
 	// char**** productionRules; //[][][]
 	// [ruleNum][segmentNum][entryInSegment]
 	

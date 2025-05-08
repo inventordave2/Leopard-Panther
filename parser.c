@@ -4,16 +4,221 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #include "./../stringy/stringy.h"
 #include "./../fileywiley/fileywiley.h"
 #include "./../colour/colour.h"
 #include "./regex.h"
 #include "./lexer.h"
+
 #include "./parser.h"
 
-int Parse( struct LexInstance* lexer	)	{
 
+struct Parser* _parser_ = (Parser*)NULL;
+
+Segment EmptySegment()	{
+	
+	Segment seg = (Segment) calloc( 1,sizeof(Segment) );
+	return seg;
+}
+
+
+Segment GetSegment( NonTerminal NT, SegmentCounter segNumber, Parser* parser )	{
+
+	signed i = GetPRIndex( NT, parser );
+	if( i<0 )
+		return (Segment)NULL;
+	
+	unsigned x = 0;
+	
+	while( x < segNumber )
+		if( parser->PRs[i][x++]==NULL )
+			return (Segment)NULL;
+	
+	Segment seg_strs = parser->PRs[i][segNumber];
+	
+	if( seg_strs==NULL )
+		return (Segment)NULL;
+	
+	return (Segment) seg_strs;
+}
+
+SegmentCounter NumSegments( NonTerminal NONTERMINAL, Parser* parser )	{
+
+	int x = 0;
+	int i;
+	for( i=0; i<parser->numPRs; i++ )	{
+		
+		if( !strcmp(NONTERMINAL,parser->NTs[i]) )	{
+			
+			x = 0;
+			while( parser->PRs[i][x] != NULL )	{
+				
+				x++;
+			}
+			
+			break;
+		}
+	}
+	
+	return (SegmentCounter)x;
+}
+
+Segment GetNextNonTerminalSegment( NonTerminal NONTERMINAL, SegmentCounter* SegCount, Parser* parser )	{
+	
+	Segment seg;
+	
+	if( *SegCount <= NumSegments( NONTERMINAL, parser ) )	{
+		
+		seg = GetSegment( NONTERMINAL, *SegCount, parser );
+		*SegCount += 1;
+		return seg;
+	}
+	
+	return EmptySegment();
+}
+
+
+bool MATCHTERMINAL( Token token, char* TOKEN_NAME )	{
+	
+	if( strcmp( token.token_name, TOKEN_NAME )==0 /** Match */ )
+		return TRUE;
+	else
+		return FALSE;
+}
+
+
+Collection* RECURSE( Token* token, NonTerminal NONTERMINAL, SegmentCounter segCount, Parser* parser )	{
+
+	Segment SEGMENT;
+	
+	while( SEGMENT = GetNextNonTerminalSegment( NONTERMINAL, &segCount, parser ) )	{
+
+		Collection* Data = SCAN( token, NONTERMINAL, SEGMENT, parser );
+		if( Data != NULL )
+			return Data; // equivalent to NONTERMINAL_SUCCESS
+	}
+	
+	return NULL;
+}
+
+Item CreateItem( int TYPE, char* tnt, void* tok_or_seg_collection )	{
+	
+	Item item;
+	
+	item.TYPE = TYPE;
+	item.tnt = tnt;
+	item.tok_or_seg_collection = tok_or_seg_collection;
+	
+	return item;
+}
+
+void PUSH( Collection* c, int type, TerminalOrNonTerminal tnt, void* tok_or_seg_collection, Parser* parser )	{
+	
+	if( c==NULL )	{
+	
+		c = (Collection*) calloc( 1, sizeof(struct Collection) );
+		
+		if( c==NULL )	{
+			
+			fprintf( stderr, "Unable to create Collection* object in fnc PUSH at %s:%d. Exiting.\n", __FILE__, __LINE__ );
+			exit( 1 );
+		}
+	}
+	
+	
+	int i = 0;
+	if( type==TYPE_TERMINAL )	{
+		
+		c->_[c->count] = CreateItem( TYPE_TERMINAL, tnt, tok_or_seg_collection );
+		c->count++;
+		return;
+	}
+
+	// type==TYPE_NONTERMINAL
+	
+	c->_[c->count] = CreateItem( TYPE_NONTERMINAL, tnt, tok_or_seg_collection );
+	c->count++;
+	
+	return;	
+}
+
+char* GetTokenAt( Segment SEGMENT, int intra_seg_offset, struct Parser* parser )	{
+	
+	// regex for | not in braces.   
+}
+
+
+Collection* SCAN( Token* token, NonTerminal NONTERMINAL, Segment SEGMENT, struct Parser* parser )	{
+			
+	Collection* collection = NULL;
+	Collection* seg_collection = NULL;
+	
+	NonTerminal segNONTERMINAL;
+	Terminal	segTERMINAL;
+	
+	bool SEGMENT_MATCH = FALSE;
+	
+	signed i = 0;
+	while( 1 )	{
+		
+		segTERMINAL = NULL;
+		segNONTERMINAL = NULL;
+		
+		if( IsTerminal( SEGMENT[i], parser->lexer ) )
+			segTERMINAL = getstring( SEGMENT[i] );
+		else
+			segNONTERMINAL = getstring( SEGMENT[i] );
+		
+		if( MATCH( *token, segTERMINAL )	)	{
+			
+			PUSH( collection, TYPE_TERMINAL, segTERMINAL, token, parser );
+		}
+		else if( (seg_collection = RECURSE( token, segNONTERMINAL, NewSegmentCounter(), parser ) ) )	{
+			
+			SEGMENT_MATCH = TRUE;
+			PUSH( collection, TYPE_NONTERMINAL, segNONTERMINAL, CopyCollection( seg_collection ), parser );
+			break;
+		}
+	
+		i++;
+	}
+	
+	if( !SEGMENT_MATCH )
+		return (Collection*)NULL;
+	
+	return collection;
+}
+
+
+signed GetPRIndex( NonTerminal NT, Parser* parser )	{
+
+		signed i;
+		
+		for( i=0; i< parser->numPRs; i++ )	{
+			
+			if( !strcmp(parser->NTs[i],NT) )
+				return i;
+		}
+		
+		return -1;
+}
+
+
+inline bool MATCH( Token token, Terminal terminal )	{
+	
+	if( !strcmp( token.token_name, terminal ) )
+		return 1;
+	
+	return 0;
+	
+}
+
+int Parse( struct Parser* parser )	{
+
+	struct LexInstance* lexer = parser->lexer;
+	
 	int x, x2, x3, x4;
 	int flag;
 
@@ -29,31 +234,54 @@ int Parse( struct LexInstance* lexer	)	{
 	char* token_type;
 	char* token;
 	
-	// lexInstance->productionRules = (char****) calloc( sizeof(char*), max_num_rules * max_num_segments * max_num_entries_in_a_segment );
+	// lexInstance->productionRules = (char****) calloc( sizeof(char*), max_num_rules * max_num_segments * MAX_NUM_ENTRIES_IN_A_SEGMENT );
 	// char**** productionRules; //[][][]
 	// [ruleNum][segmentNum][entryInSegment]
 
 	int max_num_rules = 512;
-	int max_num_segments = 64;
-	int max_num_entries_in_a_segment = 32;
+	
 	
 	for( x=0; x<max_num_rules; x++ )	{
 
-		line = getline_file( lexer->parseRulesFileName,x );
-		ruleName = match_string( "^([a-zA-Z_0-9]+)\\:", line );
-		lexer->productionRules[x][0][0] = getstring( ruleName );
-		free( ruleName );
+		line = getline_file( parser->CFG,x );
 
-		segments = split( line, '|' );
-
-		for( x2=0; x2<max_num_segments; x2++ )	{
-
-			terms = split( segments[ x2 ], ' ' );
+		segments = split( line, '|', MAX_NUM_SEGMENTS );
+	// if '|' follows an opening bracket, such as (, {or [, but before a matching closing bracket ), }, or ], remerge subsequence.
+		// char* joined = stitch( char* str1, char* str2 );
+		/**
+		
+		int i;
+		char* joined;
+		char* newstring = getstring( "" );
+		for( i=0; i<numStrings-1; i+=2 )	{
 			
-			for( x3=0; x3<max_num_entries_in_a_segment; x3++ )	{
+			joined = stitch( strs[i], strs[i+1] );
+			safecat( newstring, joined );
+			free( joined );
+		}
+		
+		if( i==numStrings-1 )	{
+			
+			joined = stitch( joined, strs[numStrings-1] );
+			safecat( newstring, joined );
+			free( joined );
+		}
+		
+		*/
+		for( x2=0; x2<MAX_NUM_SEGMENTS; x2++ )	{
+
+			if( segments[ x2 ] == NULL )
+				break;
+			
+			terms = split( segments[ x2 ], ' ', MAX_NUM_ENTRIES_IN_A_SEGMENT );
+			
+			for( x3=0; x3<MAX_NUM_ENTRIES_IN_A_SEGMENT; x3++ )	{
 
 				term = terms[ x3 ];
-				lexer->productionRules[x][x2][x3] = term;
+				if( term==NULL )
+					break;
+				
+				parser->PRs[x][x2][x3] = term;
 				free( term );
 			}
 
@@ -69,7 +297,7 @@ int Parse( struct LexInstance* lexer	)	{
 
 	// FOR_EACH lexed token in the Lexer stream.
 	
-	for( x=0; x<lexer->tokensCount; x++ )	{
+	for( x=0; x<parser->lexer->tokensCount; x++ )	{
 
 		
 		token_type = lexer->tokens[x][0];
@@ -81,7 +309,7 @@ int Parse( struct LexInstance* lexer	)	{
 
 		section_scan:
 
-		prsegment = getNextProductionRuleSegment( lexer );
+		prsegment = getNextProductionRuleSegment( parser );
 		
 		if( prsegment == NULL )	{
 			
@@ -118,7 +346,6 @@ int Parse( struct LexInstance* lexer	)	{
 
 				// token match to token_type in current prSegment.
 				_ = prsegment[ ++y ];
-
 
 				token_type = lexer->tokens[++x2][0];		
 				token = lexer->tokens[++x2][1];
@@ -164,27 +391,241 @@ int Parse( struct LexInstance* lexer	)	{
 	return 1;
 }
 
-struct ParserInstance* InitParserInstance(void)	{
-	struct ParserInstance* parser = (struct ParserInstance*) calloc( 1, sizeof(struct ParserInstance) );
-	
-	parser->lexer = NULL;
-	parser->parse = NULL;
+struct Parser* NewParser(void)	{
 
-	parser->Root = NULL;
+	struct Parser* parser = (struct Parser*) calloc( 1, sizeof(struct Parser) );
+	
+	parser->lexer	= NULL;
+	parser->parse	= Parse;
+	
+	parser->Root	= NULL;
+
+	parser->CFG		= NULL;
+
+	parser->NTs		= NULL;
+	parser->numPRs	= 0;
+	parser->PRs		= NULL;
+	// char***
 
 	parser->AddNode = AddNode;
 	parser->AddLeaf = AddLeaf;
+	parser->PushParserStack = PushParserStack;
+	
+	return parser;
+}
+
+#define SetParserTag( parser, tag ) parser->tag = getstring( tag );
+
+
+int CalcBlankLineCount( char** lineArray )	{
+	
+	char* _;
+	int x = 0;
+	while( lineArray != NULL )	{
+
+		if( strlen( _ = trim(lineArray) )==0 )
+			x++;
+		
+		free( _ );
+		lineArray++;
+	}
+	
+	return x;
+}
+
+CFGFile ScanCFG( char* cfgfn )	{
+
+	CFGFile cfg_file;
+	//{ int numPRs, char** NTs, char**** segments }
+	
+	cfg_file.numPRs = 0;
+	cfg_file.NTs = (NonTerminal*) calloc( MAX_NUM_PRODUCTION_RULES+1,sizeof(NonTerminal) );
+	struct FileContext filecontext;
+	// struct members:
+	// 	int lineCount;
+	//char** lines;
+	
+	filecontext = readFile( cfgfn );
+
+	
+
+	unsigned x = 0;
+	unsigned i;
+	char* _ = calloc( 1,1 );
+
+	if( filecontext.length > 0 )	{
+		
+		// 1. Either the string (apart from whistespace-only strings) is a NONTERMINAL (PR Name), or a pipe-delimeted set of segments associated with the rule. These pipe-delimeted segments may contain whitespace, and '|' chars, and bracketed content ( { and } especially will contain whitespace.
+			
+		// 2. Use Lexer to tokenize.
+		LexerInstance* lexr = initLex( cfgfn, "./c--.cfg" );
+			
+			int lexResult = lexr->lex( lexr );
+			int i;
+			if( lexResult )	{
+
+				for( i=0; i<lexr->tokensCount; i++ )	{
+					
+					if( !IsTerminal(lexr->tokens[i][0], lexr) )	{
+						
+						int len = strlen( lexr->tokens[i][lexr->TOK_REGEX] );
+						if( lexr->tokens[i][lexr->TOK_REGEX][ len-1 ] == ':' )	{
+							
+							char* NON_TERMINAL_RULENAME = getstring( lexr->tokens[i][lexr->TOK_REGEX] );
+							NON_TERMINAL_RULENAME[ len-1] = '\0';
+							
+							parser->NTs[ parser->numPRs ] = NON_TERMINAL_RULENAME;
+							parser->numPRs++;							
+						}
+						else	{
+							
+							char* NT = getstring( lexr->tokens[i][lexr->TOK_REGEX] );
+							// PRs[NT_index][SEGMENTS][n_or_nt];
+							
+							int x = 0;
+							int y = 0;
+							
+							while( parser->PRs[ parser->numPRs-1 ][x] != NULL )
+								x++;
+							
+							x--;
+							
+							while( parser->PRs[ parser->numPRs-1 ][x][y] != NULL )
+								y++;
+							
+							y--;
+							
+							parser->PRs[ parser->numPRs-1 ][x][y] = NT;
+						}
+					}
+					else	{ /** TERMINAL */
+				}
+			}
+	}
+
+
+	
+	cfg_file.numPRs = x;
+	
+	char** NTs2 = cfg_file.NTs;
+	
+	if( x<MAX_NUM_PRODUCTION_RULES )	{
+
+		NTs2 = realloc( cfg_file.NTs, (x+1)*sizeof(NonTerminal) );
+		
+		if( NTs2 == NULL )	{
+			
+			fprintf( stderr, "Failed to realloc() ptr at %s:%d. Exiting.\n", __FILE__, __LINE__-4 );
+			exit( 1 );
+		}
+	}
+	
+	cfg_file.NTs = NTs2;
+	
+	free( filecontents.lines );
+	
+	return cfg_file;
+}
+char** special_split( char* str, char delim, int max_num_segments )	{
+	
+	char* brackets_open = getstring( "([{" );
+	char* brackets_close = getstring( ")]}" );
+	assert( strlen(brackets_open)==strlen(brackets_close) );
+	
+	char* escape_chars = getstring( "\\" );
+	
+	int** bc = (int**) calloc( strlen(brackets_open), sizeof(int) );
+	char** results = (char**) calloc( max_num_segments, sizeof(TerminalOrNonTerminal) );
+
+	char* _ = str;
+	char* prev = str;
+	bool esc_flag = 0;
+	unsigned n = 0;
+	
+	while( *_ != '\0' )	{
+		
+		for( int z=0; z<strlen(escape_chars); z++ )
+			if( escape_chars[z] == *_ )	{
+				
+				esc_flag = (esc_flag==0?1:0);
+				goto cont;
+			}
+			
+		for( int z=0; z<strlen(brackets_open); z++ )
+			if( brackets_open[z] == *_&& !esc_flag )
+				bc[z]++;
+			else if( brackets_close[z] == *_ && !esc_flag )
+				bc[z]--;
+
+		if( *_ == delim && !esc_flag )	{
+			
+			int test = 0;
+			for( int z=0; z<strlen(brackets_open); z++ )	{
+
+				if( bc[z]!=0 )	{
+	
+					test++;
+				}
+			}
+
+			if( test == 0 )	{
+
+				results[ n ] = getsubstring( str, prev-str, _ - prev );
+				prev = _;
+				n++;
+			}
+		}
+
+		_++;
+		
+		esc_flag = 0;
+		
+		cont:
+		
+		continue;
+	}
+	
+	results[ n ] = NULL;
+	return results;
+}
+// 
+
+void InitParser( Parser* parser, char* cfg, LexInstance* lexer )	{
+	
+	parser->lexer	= lexer;
+	parser->CFG		= cfg;
+	
+	CFGFile cfgFile = ScanCFG( cfg );
+	
+	parser->numPRs	= cfgFile.numPRs;
+	parser->NTs		= cfgFile.NTs;
+	parser->PRs		= &cfgFile.segments; // [NT_index][segNumber][nt_or_t]
 	
 	
 }
 
-void PushParserStack( char* prRule, char*** collection, int amount 
-, struct ParserInstance* parser )	{
+bool IsTerminal( TerminalOrNonTerminal tt, struct LexInstance* lexer )	{
+	
+	int i;
+	char* _ = NULL;
+	for( i=0; i<lexer->numRules; i++ )	{
+		
+		if( !strcmp( lexer->tokenRules[i][0], tt ) )	{
+			
+			_ = lexer->tokenRules[i][0];
+			break;
+		}
+	}
+	
+	if( _==NULL )
+		return FALSE;
+	
+	return TRUE;
+}
+
+void PushParserStack( char* prRule, char*** collection, int amount, struct Parser* parser )	{
 
 	struct CSTNode* node = initNode( getstring(prRule) );
-	
-	node->descendents = (void**)(struct CSTNode**) malloc( sizeof(struct CSTNode*) * amount );
-	node->numDescendents = amount;
 
 	char* _;
 	struct CSTNode* subNode;
@@ -195,29 +636,26 @@ void PushParserStack( char* prRule, char*** collection, int amount
 		char* tt = collection[x][0];
 		subNode = initNode( tt );
 
-		if( checkType( tt, parser->lexer )=="T" )	{
+		if( IsTerminal( tt, parser->lexer ) )	{
 
-			#ifndef TOKEN_LITERAL
-			#define TOKEN_LITERAL 1
-			#endif
 			// Terminal.
 			// This has the side-effect that if any
 			// leaf nodes upon parse completion
 			// are not Terminals, the parse
 			// has failed.
-
-			subNode->isTerminal = 1;
-			subNode->termStr = getstring( collection[x][1] );
 			
+			SetNodeTerminal( subNode, collection[x][0], collection[x][1] );
 		}
 		else	{
 			// NonTerminal.
 			subNode->isTerminal = 0;
+			subNode->NTID = prRule;
+			node->descendents = (void**)(struct CSTNode**) calloc( amount, sizeof(struct CSTNode*) );
 		}
 
 		//subNode->ancestor = node;
 		//node->descendents[x] = subNode;
-		AddNode( subNode, node );
+		parser->AddNode( subNode, node );
 	}
 
 	return;
@@ -225,15 +663,16 @@ void PushParserStack( char* prRule, char*** collection, int amount
 
 struct CSTNode* initNode( char* nodeName )	{
 
-	struct CSTNode* _ = (struct CSTNode*) calloc( sizeof(struct CSTNode),1 );
+	struct CSTNode* _ = (struct CSTNode*) calloc( 1, sizeof(struct CSTNode*) );
 	
 	_->nodeName = getstring( nodeName );
 	_->ancestor = NULL;
 	_->descendents = NULL;
 	_->numDescendents = 0;
 
-	_->termStr = NULL;
+	_->literal = NULL;
 	_->isTerminal = 0;
+	_->NTID = NULL;
 
 	return _;
 }
@@ -242,8 +681,8 @@ void AddLeaf( struct CSTNode* node, struct CSTNode* ancestor )	{
 
 	node->isTerminal = +1;
 
-	if( node->termStr == NULL )
-		node->termStr = getstring( "[NULL String Node passed to AddLeaf() ]" );
+	if( node->ID == NULL )
+		node->ID = getstring( "[ NULL Terminal Node passed to AddLeaf() ]" );
 
 	node->ancestor = (void*) ancestor;
  	node->descendents = NULL;
@@ -266,17 +705,17 @@ void AddNode( struct CSTNode* node, struct CSTNode* ancestor )	{
 	return;
 }
 
-char** getNextProductionRuleSegment( struct LexInstance* lexer )	{
+Segment getNextProductionRuleSegment( struct Parser* parser )	{
 
 	static unsigned x = 0;
-	static unsigned y = 1;
-	static char* prRule = NULL;
+	static unsigned y = 0;
+	static NonTerminal prRule = NULL;
 
-	char** prSegment;
+	Segment prSegment;
 
-	if( lexer==NULL )	{
+	if( parser==NULL )	{
 		// reset statics.
-		x = 0, y = 1;
+		x = 0, y = 0;
 
 		if( prRule != NULL )
 			free( prRule );
@@ -285,29 +724,24 @@ char** getNextProductionRuleSegment( struct LexInstance* lexer )	{
 		return NULL;
 	}
 
-	if( lexer==(void*)1 )	{
+	if( parser==(void*)1 )	{
 
 		// return prRule;		
 		return &prRule;
 	}
 
-
-
-	if( !!strcmp( prRule,lexer->productionRules[x][0][0] ) )
-		prRule = lexer->productionRules[x][0][0];
+	if( strcmp( prRule,parser->NTs[x] )==1 ) // NONMATCH
+		prRule = parser->NTs[x];
 
 	checkAgain:
 
-	// char**** productionRules [n] [segment] [each NT/T type]
-
-
-	prSegment = lexer->productionRules[x][y++];
+	prSegment = parser->PRs[x][y++];
 
 	if( prSegment == NULL )	{
 	// no more production rules to provide a segment from.
 
 		x = 0;
-		y = 1;
+		y = 0;
 
 		if( prRule != NULL )	{
 
@@ -316,19 +750,6 @@ char** getNextProductionRuleSegment( struct LexInstance* lexer )	{
 		}
 
 		return NULL;
-	}
-
-	if( prSegment[0] == NULL )	{
-
-		if( prRule != NULL )
-			free( prRule );
-
-		x++;
-		y = 1;
-		prRule = lexer->productionRules[x][0][0];
-		// Alt. syntax: prRule = *lexer->productionRules[x][0];
-
-		goto checkAgain;
 	}
 
 	return prSegment;

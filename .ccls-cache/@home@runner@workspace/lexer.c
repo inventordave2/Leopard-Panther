@@ -238,9 +238,9 @@ struct LexInstance* initLex( char* sc, char* lr )	{
 
 	unsigned max_num_rules = 512;
 	unsigned max_num_segments = 64;
-	unsigned max_num_entries_in_a_segment = 32;
+	unsigned MAX_NUM_ENTRIES_IN_A_SEGMENT = 32;
 	
-	lexInstance->productionRules = (char****) calloc( sizeof(char*), max_num_rules * max_num_segments * max_num_entries_in_a_segment );
+	lexInstance->productionRules = (char****) calloc( sizeof(char*), max_num_rules * max_num_segments * MAX_NUM_ENTRIES_IN_A_SEGMENT );
 	// char**** productionRules; //[][][]
 	// [ruleNum][segmentNum][entryInSegment]
 	
@@ -295,13 +295,13 @@ int Parse( struct LexInstance* lexer	)	{
 	char* token_type;
 	char* token;
 	
-	// lexInstance->productionRules = (char****) calloc( sizeof(char*), max_num_rules * max_num_segments * max_num_entries_in_a_segment );
+	// lexInstance->productionRules = (char****) calloc( sizeof(char*), max_num_rules * max_num_segments * MAX_NUM_ENTRIES_IN_A_SEGMENT );
 	// char**** productionRules; //[][][]
 	// [ruleNum][segmentNum][entryInSegment]
 
 	int max_num_rules = 512;
 	int max_num_segments = 64;
-	int max_num_entries_in_a_segment = 32;
+	int MAX_NUM_ENTRIES_IN_A_SEGMENT = 32;
 	
 	for( x=0; x<max_num_rules; x++ )	{
 
@@ -316,7 +316,7 @@ int Parse( struct LexInstance* lexer	)	{
 
 			terms = split( segments[ x2 ], ' ' );
 			
-			for( x3=0; x3<max_num_entries_in_a_segment; x3++ )	{
+			for( x3=0; x3<MAX_NUM_ENTRIES_IN_A_SEGMENT; x3++ )	{
 
 				term = terms[ x3 ];
 				lexer->productionRules[x][x2][x3] = term;

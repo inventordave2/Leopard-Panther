@@ -2,8 +2,8 @@
 #include <stdio.h> 
 #include <string.h> 
 
-#include "./stringy/stringy.h"
-#include "./colour/colour.h"
+#include "./../stringy/stringy.h"
+#include "./../colour/colour.h"
 
 #include "regex.h"
 #include "lexer.h" 

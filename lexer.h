@@ -23,17 +23,9 @@ typedef struct LexInstance	{
 	
 	int isControlSequence;
 
-	// init :  sizeof(char*) * n * max_num_segments * max_num entries in a segment
-	char**** productionRules; //[][][]
-	char* parseRulesFileName;
-	int numProductionRules;
-
 	int (*lex)( struct LexInstance* );
-	
 
-	struct ParserInstance* parser;
-
-
+	struct Parser* parser;
 
 } LexInstance;
 
@@ -41,6 +33,9 @@ extern int extend( void* _ );
 
 extern char*** initRuleSetArray( int numRules );
 extern char*** initTokenResultsArray( int assumpt );
+
+extern char** getNextToken( struct LexInstance* );
+extern char** Next = getNextToken;
 
 //// LEXER
 // FUNCTIONS

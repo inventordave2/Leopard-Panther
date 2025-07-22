@@ -1,17 +1,19 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+
 // LEXER & PARSER Includes. 
 #include "./../stringy/stringy.h"
 #include "./../colour/colour.h"
-#include "./../fileywiley/fileywiley.h"
 
+#include "./fileywiley.h"
 #include "./regex.h"
 #include "./lexer.h"
 #include "./parser.h"
 
 // W STOOP'S REGEX LIBRARY
-#include "./../wernee/regex_w/wregex.h"
-#include "./../wernee/regex_w/wrx_prnt.h"
+#include "./../regex_w/wregex.h"
+#include "./../regex_w/wrx_prnt.h"
 
 #define LEXERDIAGNOSTICSMSG( msgCode )
 
@@ -54,7 +56,7 @@ Token scanstring( char* str, struct LexInstance* ilexer )	{
 	}
 	
 	if( token.pattern!=NULL )
-		token.token_name = getstring( lexer->tokenRules[x][0] );
+		token.token_name = stringy->getstring( lexer->tokenRules[x][0] );
 
 	// If we got here, wregex has either matched the pattern to the rule, or has failed to find a match in the Ruleset.
 	return token;
@@ -209,7 +211,7 @@ int lex( struct LexInstance* lexer )	{
 				
 				error = 1;
 				_[k-1] = '\0';
-				push( match_bkp.token_name, getstring( _ ), lexer );
+				push( match_bkp.token_name, stringy->getstring( _ ), lexer );
 				k = 0;
 				--i;
 				continue;
@@ -229,8 +231,8 @@ void push( char* token_name, char* literal, struct LexInstance* lexer )	{
 
 	char** entry = (char**)malloc( sizeof(char*) * 2 );
 	
-	char* type = getstring( token_name );
-	char* lit = getstring( literal );
+	char* type = stringy->getstring( token_name );
+	char* lit = stringy->getstring( literal );
 	
 	entry[0] = type;
 	entry[1] = lit;
@@ -244,9 +246,13 @@ void push( char* token_name, char* literal, struct LexInstance* lexer )	{
 
 struct LexInstance* initLex( char* sc, char* lr )	{
 
+	InitFileyWiley();
+	InitStringy();
+	InitColour();
+	
 	// HELPER VARS.
-	struct FileContext fc_source = readFile( sc );
-	struct FileContents fc_lex = read_f_split( lr, "\n" );
+	struct FileContext fc_source = fileywiley->readFile( sc );
+	struct FileContents fc_lex = fileywiley->read_f_split( lr, '\n' );
 
 	// GENERATE LEXER INSTANCE STATE.
 	struct LexInstance* lexInstance = (struct LexInstance*) calloc( 1, sizeof(LexInstance) );
@@ -269,10 +275,6 @@ struct LexInstance* initLex( char* sc, char* lr )	{
 	unsigned max_num_rules = 65536;
 	unsigned max_num_segments = 64;
 	
-	lexInstance->productionRules = (char****) calloc( sizeof(char*), max_num_rules * max_num_segments * MAX_NUM_ENTRIES_IN_A_SEGMENT );
-	// char**** productionRules; //[][][]
-	// [ruleNum][segmentNum][entryInSegment]
-	
 
 	// POPULATE THE TOKENIZER RULESET.
 	int offset;
@@ -291,12 +293,12 @@ struct LexInstance* initLex( char* sc, char* lr )	{
 		
 
 		tokenData = MatchStringToPattern( "^[A-Za-z]+[A-Za-z_0-9]*", line );
-		lexInstance->tokenRules[i][lexInstance->TOK_TYPE] = getstring( tokenData.literal );
+		lexInstance->tokenRules[i][lexInstance->TOK_TYPE] = stringy->getstring( tokenData.literal );
 		
 		line += tokenData.length;
 		FreeToken( &tokenData );
 		
-		char* rgxpatt = trim( line );
+		char* rgxpatt = stringy->trim( line );
 		
 		lexInstance->tokenRules[i][lexInstance->TOK_REGEX] = rgxpatt;
 	}

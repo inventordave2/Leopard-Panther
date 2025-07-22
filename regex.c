@@ -6,8 +6,8 @@
 
 
 // W STOOP'S REGEX LIBRARY
-#include "./../wernee/regex_w/wregex.h"
-#include "./../wernee/regex_w/wrx_prnt.h"
+#include "./../regex_w/wregex.h"
+#include "./../regex_w/wrx_prnt.h"
 
 #include "./../stringy/stringy.h"
 #include "./regex.h"
@@ -110,24 +110,22 @@ Token MatchStringToPattern( char* pattern, char* str )	{
 	e = wrx_exec(r, str, &subm, &r->n_subm);
 
 	if(e < 0)
-		fprintf(stderr, "Error: %s\n", wrx_error(e));
+		fprintf( stderr, "Error: %s\n", wrx_error(e) );
 	
 	if( e <= 0 )
 		tok = GetEmptyToken();
 	else	{
-		
-		
+
 		tok.literal = calloc( 256, CODEPAGE_ATOMIC_WIDTH );
-		
 		unsigned long long begin = (unsigned long long)subm[0].beg;
 		unsigned long long term  = (unsigned long long)subm[0].end;
 		unsigned long long str_addr = (unsigned long long)str;
 		
-		tok.literal = getsubstring( str+(begin-str_addr), 0, term-begin-1 );
+		tok.literal = stringy->substring( str+(begin-str_addr), 0, term-begin-1 );
 		tok.offset = begin - str_addr;
 		tok.length = (term - begin);
-		tok.pattern = getstring( pattern );
-		tok.token_name = getstring( tok.literal );
+		tok.pattern = stringy->getstring( pattern );
+		tok.token_name = stringy->getstring( tok.literal );
 		tok.source = str; // do not copy, just the reference. Sources tend to be entire source-code files.
 	}
 	

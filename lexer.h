@@ -35,7 +35,7 @@ extern char*** initRuleSetArray( int numRules );
 extern char*** initTokenResultsArray( int assumpt );
 
 extern char** getNextToken( struct LexInstance* );
-extern char** Next = getNextToken;
+extern char** Next( struct LexInstance* );
 
 //// LEXER
 // FUNCTIONS

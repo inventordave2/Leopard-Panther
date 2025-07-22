@@ -7,7 +7,7 @@
 #include <assert.h>
 
 #include "./../stringy/stringy.h"
-#include "./../fileywiley/fileywiley.h"
+#include "./fileywiley.h"
 #include "./../colour/colour.h"
 #include "./regex.h"
 #include "./lexer.h"
@@ -15,7 +15,7 @@
 #include "./parser.h"
 
 
-struct Parser* _parser_ = (Parser*)NULL;
+struct Parser* _parser_ = (struct Parser*)NULL;
 
 Segment EmptySegment()	{
 	
@@ -167,9 +167,9 @@ Collection* SCAN( Token* token, NonTerminal NONTERMINAL, Segment SEGMENT, struct
 		segNONTERMINAL = NULL;
 		
 		if( IsTerminal( SEGMENT[i], parser->lexer ) )
-			segTERMINAL = getstring( SEGMENT[i] );
+			segTERMINAL = stringy->getstring( SEGMENT[i] );
 		else
-			segNONTERMINAL = getstring( SEGMENT[i] );
+			segNONTERMINAL = stringy->getstring( SEGMENT[i] );
 		
 		if( MATCH( *token, segTERMINAL )	)	{
 			
@@ -273,7 +273,7 @@ int Parse( struct Parser* parser )	{
 			if( segments[ x2 ] == NULL )
 				break;
 			
-			terms = split( segments[ x2 ], ' ', MAX_NUM_ENTRIES_IN_A_SEGMENT );
+			terms = stringy->split( segments[ x2 ], ' ', MAX_NUM_ENTRIES_IN_A_SEGMENT );
 			
 			for( x3=0; x3<MAX_NUM_ENTRIES_IN_A_SEGMENT; x3++ )	{
 
@@ -570,7 +570,7 @@ char** special_split( char* str, char delim, int max_num_segments )	{
 
 			if( test == 0 )	{
 
-				results[ n ] = getsubstring( str, prev-str, _ - prev );
+				results[ n ] = stringy->substring( str, prev-str, _ - prev );
 				prev = _;
 				n++;
 			}

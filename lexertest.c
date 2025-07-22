@@ -5,15 +5,15 @@
 #include "./../stringy/stringy.h"
 #include "./../colour/colour.h"
 
-#include "regex.h"
-#include "lexer.h" 
-#include "parser.h" 
-#include "lexertest.h" 
+#include "./regex.h"
+#include "./lexer.h" 
+#include "./parser.h" 
+#include "./lexertest.h" 
 
 int main( int argc, char** argv )	{
 
-	ansivt = 1;
-	colorMode();
+	InitStringy();
+	InitColour();
 
 	print( "%sWelcome to %sDaveLib%s's testversion of a %sC--%s lexer.%s\n", \
 			FG_BRIGHT_BLUE, FG_YELLOW, FG_BRIGHT_BLUE, FG_BRIGHT_YELLOW, FG_BRIGHT_BLUE, NORMAL );
@@ -30,45 +30,44 @@ int main( int argc, char** argv )	{
 		#endif
 		
 		char pstr[] = "%s#%s \0";
-		char* prmpt = (char*) calloc( strlen(pstr)+1 , CODEPAGE_ATOMIC_WIDTH );
+		char* prmpt = (char*)calloc( strlen(pstr)+1 , CODEPAGE_ATOMIC_WIDTH );
 
 		sprintf( prmpt, pstr, FG_BRIGHT_YELLOW, NORMAL );
-		printf( "Please enter the filename of a C or Javascript, or C-- source code file.\n" );
-		char* in = (char*) calloc( MAX_FILE_PATH_LENGTH+1, CODEPAGE_ATOMIC_WIDTH );
-		signed result = input( prmpt, in, MAX_FILE_PATH_LENGTH+1 );
+		printf( "Please enter the filename of a C or Javascript, or C-- source code file. %s\n", prmpt );
+		char* in = (char*)calloc( MAX_FILE_PATH_LENGTH+1, CODEPAGE_ATOMIC_WIDTH );
+		fgets( in, MAX_FILE_PATH_LENGTH, stdin );
 		
-		if( result==+2 )	{
+		if( !strcmp( in,"quit" ) )	{
 
 			printf( "Exiting...\n" );
 			exit(0);
 		}
 		
-		if( result==+1 )	{
+		if( strlen( in ) > 3 )	{
 			
-			sc = in;
+			sc = stringy->getstring( in );
 		}
 
 		printf( "Please enter the filename of a lex file for the tokenization process.\n" );
-		in = (char*) calloc( MAX_FILE_PATH_LENGTH+1, CODEPAGE_ATOMIC_WIDTH );
-		result = input( prmpt, in, MAX_FILE_PATH_LENGTH + 1 );
+		fgets( in, MAX_FILE_PATH_LENGTH, stdin );
 		
-		if( result==+2 )	{
+		if( !strcmp( in,"quit" ) )	{
 			
 			printf( "Exiting...\n" );
 			exit(0);
 		}
 		
-		if( result==+1 )	{
+		if( strlen( in ) > 3 )	{
 			
 			lexerrules = in;
 		}
 	}
 		
 	if( argc>1 )
-		sc = getstring( argv[1] );
+		sc = stringy->getstring( argv[1] );
 
 	if( argc>2 )
-		lexerrules = getstring( argv[2] );
+		lexerrules = stringy->getstring( argv[2] );
 
 	
 	struct LexInstance* lexer = initLex( sc, lexerrules );
@@ -76,8 +75,7 @@ int main( int argc, char** argv )	{
 	// QUICKTEST
 	
 	if( teststr != NULL )	{
-		
-		
+
 		Token result = scanstring( teststr, lexer );
 		
 		if( result.pattern != NULL )
@@ -85,7 +83,6 @@ int main( int argc, char** argv )	{
 		else
 			printf( "result is NULL.\n" );
 		exit( 0 );
-	
 	}
 
 	int success = lex( lexer );

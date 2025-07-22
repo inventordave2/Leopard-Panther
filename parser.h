@@ -43,7 +43,7 @@ SegmentCounter NewSegmentCounter(void)	{
  
 extern Segment EmptySegment();
 
-#define SetNodeTerminal( node, (char*) t, (char*) literal ) \
+#define SetNodeTerminal( node, t, literal ) \
 node->ID = t; \
 node->isTerminal = 1; \
 node->literal = literal; \

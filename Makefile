@@ -1,14 +1,14 @@
 # Makefile for Lexer & Parser, written in C. Bison/Flex-free.
 
 # Vars.
-CC=./gcc
+CC=gcc
 DEBUG=-g -DDEBUG
 OPTIM=-O0
 
 .PHONY: clean clean-all
 
 regex: ./regex.c ./regex.h
-	make -C ./../wernee/regex_w libd
+	gnumake -C ./../regex_w/ libd
 	$(CC) $(DEBUG) $(OPTIM) -c ./regex.c -o ./regex.o
 
 lexertest: ./lexertest.c ./lexertest.h
@@ -21,22 +21,22 @@ parser: ./parser.c ./parser.h
 	$(CC) $(DEBUG) $(OPTIM) -c ./parser.c -o ./parser.o
 
 test: lexpkg
-	$(CC) $(DEBUG) $(OPTIM) ./lexer.o ./lexertest.o  ./regex.o ./../fileywiley/fwd.o ./../colour/colourd.o ./../stringy/stringyd.o ./../wernee/regex_w/regexd.o -o ./test.exe
+	$(CC) $(DEBUG) $(OPTIM) ./file.o ./lexer.o ./lexertest.o ./regex.o ./../colour/colour_d.o ./../stringy/stringyd.o ./../regex_w/regexd.o -o ./test.exe
 
 stringycolorfiles:
-	make -C ./../colour colourd
-	make -C ./../stringy stringyd 
-	make -C ./../fileywiley/ fwd
+	gnumake -C ./../colour colour_d
+	gnumake -C ./../stringy stringyd 
+	$(CC) $(DEBUG) $(OPTIM) ./fileywiley.c -c -o file.o
 	
-lexpkg: lexer lexertest regex
+	
+lexpkg: lexer parser lexertest regex stringycolorfiles
 	
 clean:
-	rm -f ./*.o
-	rm -f ./*.a
-	rm -f ./test.exe
+	del -f ./*.o
+	del -f ./*.a
+	del -f ./test.exe
 	
 clean-all: clean
-	make -C ./../colour/ clean
-	make -C ./../stringy/ clean
-	make -C ./../fileywiley/ clean
+	gnumake -C ./../colour/ clean
+	gnumake -C ./../stringy/ clean
 
